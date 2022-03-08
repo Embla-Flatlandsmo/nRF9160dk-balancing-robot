@@ -1,0 +1,31 @@
+&led1_pin_routing {
+    status = "disabled";
+};
+
+&led2_pin_routing {
+    status = "disabled";
+};
+
+&led3_pin_routing {
+    status = "disabled";
+};
+
+&led4_pin_routing {
+    status = "disabled";
+};
+
+&switch1_pin_routing {
+    status = "disabled";
+};
+
+&switch2_pin_routing {
+    status = "disabled";
+};
+
+&button1_pin_routing {
+    status = "disabled";
+};
+
+&button2_pin_routing {
+    status = "disabled";
+};

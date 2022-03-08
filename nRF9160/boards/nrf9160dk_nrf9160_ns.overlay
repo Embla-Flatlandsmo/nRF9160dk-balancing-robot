@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2019 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+&i2c2 {
+	status = "okay";
+	compatible = "nordic,nrf-twim";
+	sda-pin = <11>;
+	scl-pin = <13>;
+	
+
+	mpu6050@68 {
+		compatible = "invensense,mpu6050";
+		reg = <0x68>;
+		status = "okay";
+		label = "MPU6050";
+		int-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
+	};
+};
+*/
+/*
+&i2c2 {
+	status = "okay";
+	compatible = "nordic,nrf-twim";
+	sda-pin = <30>;
+	scl-pin = <31>;
+	clock-frequency = <100000>; 
+	mpu9250: mpu9250@68 {
+		compatible = "invensense,mpu9250";
+		reg = <0x68>;
+		status = "okay";
+		label = "MPU9250";
+		irq-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+		gyro-sr-div = <200>;
+		gyro-dlpf = <92>;
+		gyro-fs = <2000>;
+		accel-fs = <2>;
+		accel-dlpf = "21.2";
+	};
+};
+*/
+
+
+&i2c2 {
+	status = "okay";
+	compatible = "nordic,nrf-twim";
+	sda-pin = <11>;
+	scl-pin = <13>;
+	mpu9250: mpu9250@68 {
+		compatible = "invensense,mpu9250";
+		reg = <0x68>;
+		label = "MPU9250";
+		gyro-sr-div = <200>;
+		gyro-dlpf = <92>;
+		gyro-fs = <2000>;
+		accel-fs = <2>;
+		accel-dlpf = "21.2";
+		irq-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
+	};
+};
