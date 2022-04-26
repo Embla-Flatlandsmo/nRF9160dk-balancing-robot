@@ -1,0 +1,23 @@
+# #
+# # Copyright (c) 2021 Nordic Semiconductor
+# #
+# # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+# #
+
+menuconfig IMU_MODULE
+	bool "IMU module"
+	default y
+
+if IMU_MODULE
+
+config IMU_THREAD_STACK_SIZE
+	int "Sensor module thread stack size"
+	default 1152
+
+rsource "../ext_sensors/Kconfig"
+
+endif # SENSOR_MODULE
+
+module = IMU_MODULE
+module-str = IMU module
+source "subsys/logging/Kconfig.template.log_config"
