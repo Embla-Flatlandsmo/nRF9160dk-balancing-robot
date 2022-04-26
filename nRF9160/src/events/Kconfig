@@ -11,15 +11,7 @@ menuconfig EVENTS
 if EVENTS
 
 config IMU_EVENTS_LOG
-	bool "Enable logging for application module events"
-	default y
-
-config MODEM_EVENTS_LOG
-	bool "Enable logging for modem module events"
-	default y
-
-config CLOUD_EVENTS_LOG
-	bool "Enable logging for Cloud module events"
+	bool "Enable logging for IMU module events"
 	default y
 
 if PROFILER

@@ -11,13 +11,13 @@
 		// pressure-sensor = &bme680;
 		accelerometer = &mpu9250;
 		gyroscope = &mpu9250;
+		magnetometer = &mpu9250;
 	};
 };
 
 &i2c2 {
 	status = "okay";
 	compatible = "nordic,nrf-twim";
-	// interrupts = <10 NRF_DEFAULT_IRQ_PRIORITY>;
 	sda-pin = <11>;
 	scl-pin = <13>;
 	mpu9250: mpu9250@68 {

@@ -5,8 +5,7 @@
 #
 
 menu "Balancing Robot"
-# rsource "src/modules/Kconfig.modules_common"
-rsource "src/modules/Kconfig.imu_module"
+rsource "src/modules/Kconfig"
 
 rsource "src/events/Kconfig"
 

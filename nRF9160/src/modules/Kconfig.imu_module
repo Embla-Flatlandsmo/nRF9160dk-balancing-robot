@@ -12,11 +12,13 @@ if IMU_MODULE
 
 config IMU_THREAD_STACK_SIZE
 	int "Sensor module thread stack size"
-	default 1152
+	default 2048
 
-rsource "../ext_sensors/Kconfig"
+config IMU_MESSAGE_FREQUENCY
+	int "Number of event messages per second"
+	default 1
 
-endif # SENSOR_MODULE
+endif # IMU_MODULE
 
 module = IMU_MODULE
 module-str = IMU module
