@@ -16,4 +16,4 @@ manifest:
       import: true
       
   self:
-    path: balancing-robot-shield-firmware
+    path: balancing-robot-firmware
