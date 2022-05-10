@@ -1,0 +1,127 @@
+#
+# Copyright (c) 2022 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menuconfig CONTROLLER_MODULE
+	bool "Controller module"
+	default y
+
+if CONTROLLER_MODULE
+
+config CONTROLLER_THREAD_STACK_SIZE
+	int "Controller module thread stack size"
+	default 2048
+
+
+config STATIC_SET_POINT_PITCH
+    int "Static set point used as an 'anchor' when changing pitch set point"
+    help
+      This is manually set by finding the pitch angle at which the robot balances without input
+    default 90
+
+config STATIC_SET_POINT_SPEED
+    int "Static set point is used as an 'anchor' when changing speed set point"
+    default 0
+
+config ANGLE_FAILSAFE_LIMIT
+    int "Absolute value of angle above which the motors will shut down to fail predictably"
+    default 20
+
+# PID controller stuff
+config ENABLE_FEEDFORWARD
+    bool "Additional feedforward control"
+    default n
+
+config DEGREES_RANGE_PITCH
+    int "Allowed range of degrees when changing set point for pitch"
+    default 5
+
+config DEGREES_RANGE_YAW
+    int "Allowed range of degrees when changing set point for yaw"
+    default 180
+
+config SPEED_RANGE
+    int "Max horizontal speed factor. Divided by 100 in the code"
+    default 4
+
+## Pitch PID
+config KP_PITCH
+    int "Proportional gain of PID controller for pitch"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 180000
+
+config KI_PITCH
+    int "Integral gain of PID controller for pitch"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 130000
+
+config KD_PITCH
+    int "Derivative gain of PID controller for pitch"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 2500
+
+config PITCH_INTEGRATION_LIMITS
+    int "Upper and lower integration limits of pitch PID"
+    default 4000
+
+## Yaw PID
+config KP_YAW
+    int "Proportional gain of PID controller for yaw"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 180000
+
+config KI_YAW
+    int "Integral gain of PID controller for yaw"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 130000
+
+config KD_YAW
+    int "Derivative gain of PID controller for yaw"
+    help
+        Note that the gain is divided by 100 in the source code.
+    default 2500
+
+config YAW_INTEGRATION_LIMITS
+    int "Upper and lower integration limits of yaw PID"
+    default 4000
+
+## Speed PID
+
+config KP_SPEED
+    int "Proportional gain of PID controller for speed"
+    help
+       Note that the gain is divided by 100 in the source code.
+    default 80
+
+config KI_SPEED
+    int "Integral gain of PID controller for speed"
+    help
+      Note that the gain is divided by 100 in the source code
+    default 90
+
+config KD_SPEED
+    int "Derivative gain of PID controller for speed"
+    help
+      Note that the gain is divided by 100 in the source code
+    default 4
+
+config SPEED_INTEGRATION_LIMITS
+    int "Upper and lower integration limits of speed PID"
+    default 10
+
+config SPEED_OUTPUT_LIMITS
+    int "Upper and lower output limits of speed PID"
+    default 10
+
+endif # CONTROLLER_MODULE
+
+module = CONTROLLER_MODULE
+module-str = Controller module
+source "subsys/logging/Kconfig.template.log_config"

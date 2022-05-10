@@ -22,8 +22,10 @@ This is still a work in progress, so far the only thing implemented is IMU messa
 ### nRF52840
 This chip is currently not in use, but some gpio pin routing settings might cause LEDs on the DK to light up when the motor board is connected. If this is a problem, feel free to build+flash the basic program in `nRF52840` which disables the pin routings.
 
-# Notes:
-`CONFIG_LOG_MODE_IMMEDIATE` is required to log doubles (which is what the IMU module does). Be aware that it's blocking (and slow), so it can affect timing-critical parts of the application. If this becomes an issue down the road, feel free to disable it (the program will work, it's just that accelerometer/gyro log outputs will be all zero).
+# Notes
+- `CONFIG_LOG_MODE_IMMEDIATE` is required to log doubles (which is what the IMU module does). Be aware that it's blocking (and slow), so it can affect timing-critical parts of the application. If this becomes an issue down the road, feel free to disable it (the program will work, it's just that accelerometer/gyro log outputs will be all zero).
+- You might notice that the IMUs `MPU6050` and `MPU9250` are used a bit interchangably. These are pretty similar. A driver for MPU9250 was recently implemented (see [PR#40702](https://github.com/zephyrproject-rtos/zephyr/pull/40702)). Before that, MPU9250-support was "hidden" in the MPU6050 driver (as seen in [PR#32623](https://github.com/zephyrproject-rtos/zephyr/pull/32623))
+
 
 ## Useful links
-- [MPU9250 (IMU) datasheet](https://3cfeqx1hf82y3xcoull08ihx-wpengine.netdna-ssl.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf) ()
+- [MPU9250 (IMU) datasheet](https://3cfeqx1hf82y3xcoull08ihx-wpengine.netdna-ssl.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf)

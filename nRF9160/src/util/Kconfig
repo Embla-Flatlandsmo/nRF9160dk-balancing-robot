@@ -1,0 +1,9 @@
+menuconfig PID_UTIL
+    bool "Util for PID controller"
+    default y
+
+if PID_UTIL
+module = PID_UTIL
+module-str = PID utilities
+source "subsys/logging/Kconfig.template.log_config"
+endif # PID_UTIL
