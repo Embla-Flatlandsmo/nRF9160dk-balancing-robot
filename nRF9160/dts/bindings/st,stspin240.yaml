@@ -1,0 +1,35 @@
+
+# Bindings for STMicroelectronics STSPIN240 dual brushed dc driver
+
+compatible: "st,stspin240"
+description: "Dual brushed DC motor driver"
+
+include: "base.yaml"
+
+properties:
+  enable_fault-gpios: 
+    type: phandle-array
+    required: false
+    description: "Enables the device when set high, indicates fault when pulled low by the driver IC"
+  
+  standby_reset-gpios:
+    type: phandle-array
+    required: false
+    description: "Forces device into low consumption mode when forced low."
+  
+child-binding:
+  compatible: "st,stspin240-motor"
+  description: Brushed DC Motor driven by st,stspin240
+
+  include: "base.yaml"
+
+  properties:
+    pwms:
+      type: phandle-array
+      required: true
+      description: "Motor power pwm."
+    
+    phase-gpios:
+      type: phandle-array
+      required: true
+      description: "Motor phase control pin. Used to set the direction of the motor."

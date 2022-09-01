@@ -12,7 +12,7 @@ manifest:
     - name: sdk-nrf
       remote: nrfconnect
       path: nrf
-      revision: v1.9.0 
+      revision: 69bfabb5a6248d306977d8247084d4b6ddf405ed
       import: true
       
   self:

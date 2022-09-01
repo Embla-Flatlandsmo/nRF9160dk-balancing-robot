@@ -12,6 +12,7 @@
 
 #include "modules_common.h"
 #include "events/imu_module_event.h"
+#include "../../drivers/motors/motor.h"
 
 #include <util/pid.h>
 
@@ -57,6 +58,42 @@ static struct module_data self = {
     .msg_q = &msgq_controller,
     .supports_shutdown = true,
 };
+
+const struct device *device_motor_a = DEVICE_DT_GET(DT_ALIAS(motora));
+const struct device *device_motor_b = DEVICE_DT_GET(DT_ALIAS(motorb));
+
+//========================================================================================
+/*                                                                                      *
+ *                                      Motor                                           *
+ *                                                                                      */
+//========================================================================================
+static int init_motors()
+{
+    // LOG_DBG("Initializing motor drivers");
+    int err;
+    err = !device_is_ready(device_motor_a);
+    if (err)
+    {
+        LOG_ERR("Motor a not ready: Error %d", err);
+        return err;
+    }
+
+    err = !device_is_ready(device_motor_b);
+    if (err)
+    {
+        LOG_ERR("Motor b not ready: Error %d", err);
+        return err;
+    }
+    return 0;
+}
+
+static int set_motor_speed(uint8_t speed)
+{
+    motor_drive_continous(device_motor_a, speed, 100, 1);
+    motor_drive_continous(device_motor_b, speed, 100, 1);
+    // k_work_schedule(&stop_motor_work, K_MSEC(time));
+    return 0;
+}
 
 //========================================================================================
 /*                                                                                      *
@@ -142,6 +179,7 @@ void update_controller(float speed, float pitch_angle, short disturbance)
         LOG_DBG("Pitch PID output: %d", pitch_output);
 
         // TODO: call motor driver API
+        set_motor_speed(speed_output);
         // set_motor_speed(motor_a, speed_a)
         // set_motor_speed(motor_b, speed_b)
     }
@@ -152,6 +190,7 @@ void update_controller(float speed, float pitch_angle, short disturbance)
         PID_pitch.set_point = CONFIG_STATIC_SET_POINT_PITCH + ANGLE_NORMALIZED_CONSTANT;
 
         // TODO: Set motor pwm to 0
+        set_motor_speed(0);
     }
     first = false;
 }
@@ -168,6 +207,7 @@ int setup()
     float current_time = k_uptime_get();
     pid_time.prev_pitch_time_ms = current_time;
     pid_time.prev_speed_time_ms = current_time;
+    init_motors();
 }
 
 //========================================================================================
