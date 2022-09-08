@@ -13,8 +13,8 @@
  * @{
  */
 
-#include <event_manager.h>
-#include <event_manager_profiler_tracer.h>
+#include <app_event_manager.h>
+#include <app_event_manager_profiler_tracer.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -59,7 +59,7 @@ extern "C"
 
     struct imu_module_event
     {
-        struct event_header header;
+        struct app_event_header header;
         /** Sensor module event type. */
         enum imu_module_event_type type;
         int err;
@@ -69,7 +69,7 @@ extern "C"
 
     };
 
-    EVENT_TYPE_DECLARE(imu_module_event);
+    APP_EVENT_TYPE_DECLARE(imu_module_event);
 
 #ifdef __cplusplus
 }

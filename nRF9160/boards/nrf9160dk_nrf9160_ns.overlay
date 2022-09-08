@@ -4,22 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/ {
-	aliases {
-		// temp-sensor = &bme680;
-		// humidity-sensor = &bme680;
-		// pressure-sensor = &bme680;
-		accelerometer = &mpu9250;
-		gyroscope = &mpu9250;
-		magnetometer = &mpu9250;
-	};
+&arduino_i2c {
+	status = "disabled";
 };
+
+&spi3 {
+	status = "disabled";	
+};
+
 
 &i2c2 {
 	status = "okay";
 	compatible = "nordic,nrf-twim";
-	sda-pin = <11>;
-	scl-pin = <13>;
+	pinctrl-0 = <&i2c2_default_alt>;
+	pinctrl-1 = <&i2c2_sleep_alt>;
 	mpu9250: mpu9250@68 {
 		compatible = "invensense,mpu9250";
 		reg = <0x68>;
@@ -34,32 +32,44 @@
 };
 
 &pinctrl {
+	i2c2_default_alt: i2c2_default_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
+				<NRF_PSEL(TWIM_SCL, 0, 13)>;
+		};
+	};
+	i2c2_sleep_alt: i2c2_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
+				<NRF_PSEL(TWIM_SCL, 0, 13)>;
+		};
+	};
 	pwm1_default_alt: pwm1_default_alt {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 30)>,
-					<NRF_PSEL(PWM_OUT1, 0, 28)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 18)>,
+					<NRF_PSEL(PWM_OUT1, 0, 16)>;
 		};
 	};
 	pwm1_sleep_alt: pwm1_sleep_alt {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 30)>,
-					<NRF_PSEL(PWM_OUT1, 0, 28)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 18)>,
+					<NRF_PSEL(PWM_OUT1, 0, 16)>;
 			low-power-enable;
 		};
 	};
 
 	pwm0_default_alt: pwm0_default_alt {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 1, 7)>,
-			        <NRF_PSEL(PWM_OUT1, 1, 6)>,
-			        <NRF_PSEL(PWM_OUT2, 1, 5)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
+			        <NRF_PSEL(PWM_OUT1, 0, 5)>,
+			        <NRF_PSEL(PWM_OUT2, 0, 4)>;
 		};
 	};
 	pwm0_sleep_alt: pwm0_sleep_alt {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 1, 7)>,
-			        <NRF_PSEL(PWM_OUT1, 1, 6)>,
-			        <NRF_PSEL(PWM_OUT2, 1, 5)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
+			        <NRF_PSEL(PWM_OUT1, 0, 5)>,
+			        <NRF_PSEL(PWM_OUT2, 0, 4)>;
 			low-power-enable;
 		};
 	};
@@ -77,4 +87,37 @@
 	pinctrl-0 = <&pwm0_default_alt>;
 	pinctrl-1 = <&pwm0_sleep_alt>;
 	pinctrl-names = "default", "sleep";
+};
+
+/ {
+	aliases {
+		// temp-sensor = &bme680;
+		// humidity-sensor = &bme680;
+		// pressure-sensor = &bme680;
+		accelerometer = &mpu9250;
+		gyroscope = &mpu9250;
+		magnetometer = &mpu9250;
+		motora = &motor_0_a;
+		motorb = &motor_0_b;
+	};
+	motor_port0: motor_port0{
+		compatible = "st,tb6612fng";
+		status = "okay";
+		label = "motor_port_0";
+		enable_fault-gpios = <&gpio0 3 0>;
+
+		motor_0_a: motor_a {
+			compatible = "st,tb6612fng-motor";
+			status = "okay";
+			pwms = <&pwm1 0 PWM_HZ(50) PWM_POLARITY_NORMAL>;
+			phase-gpios = <&gpio0 29 0>;
+		};
+
+		motor_0_b: motor_b {
+			compatible = "st,tb6612fng-motor";
+			status = "okay";
+			pwms = <&pwm1 1 PWM_HZ(50) PWM_POLARITY_NORMAL>;
+			phase-gpios = <&gpio0 4 0>;
+		};
+	};
 };

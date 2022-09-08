@@ -16,37 +16,37 @@
 #define SEND_EVENT(_mod, _type)								\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event();		\
 	event->type = _type;								\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 #define SEND_ERROR(_mod, _type, _error_code)						\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event();		\
 	event->type = _type;								\
 	event->data.err = _error_code;							\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 #define SEND_SHUTDOWN_ACK(_mod, _type, _id)						\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event();		\
 	event->type = _type;								\
 	event->data.id = _id;								\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 /* Sends event with dynamic data length set to 0*/
 #define SEND_DYN_EVENT(_mod, _type)								\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event(0);		\
 	event->type = _type;								\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 #define SEND_DYN_ERROR(_mod, _type, _error_code)						\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event(0);		\
 	event->type = _type;								\
 	event->data.err = _error_code;							\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 #define SEND_DYN_SHUTDOWN_ACK(_mod, _type, _id)						\
 	struct _mod ## _module_event *event = new_ ## _mod ## _module_event(0);		\
 	event->type = _type;								\
 	event->data.id = _id;								\
-	EVENT_SUBMIT(event)
+	APP_EVENT_SUBMIT(event)
 
 struct module_data {
 	/* Variable used to construct a linked list of module metadata. */

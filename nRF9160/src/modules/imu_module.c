@@ -40,7 +40,7 @@ static void movement_data_send(struct sensor_value accel[3], struct sensor_value
 	imu_module_event->gyro.timestamp = k_uptime_get();
 	imu_module_event->type = IMU_EVT_MOVEMENT_DATA_READY;
 
-	EVENT_SUBMIT(imu_module_event);
+	APP_EVENT_SUBMIT(imu_module_event);
 }
 
 static const char *now_str(void)
@@ -138,7 +138,7 @@ static void module_thread_fn(void)
 	}
 }
 
-static bool event_handler(const struct event_header *eh)
+static bool event_handler(const struct app_event_header *eh)
 {
 	// Does nothing with incoming messages right now
 
@@ -152,4 +152,4 @@ K_THREAD_DEFINE(imu_module_thread, CONFIG_IMU_THREAD_STACK_SIZE,
 				module_thread_fn, NULL, NULL, NULL,
 				K_LOWEST_APPLICATION_THREAD_PRIO, 0, 0);
 
-EVENT_LISTENER(MODULE, event_handler);
+APP_EVENT_LISTENER(MODULE, event_handler);

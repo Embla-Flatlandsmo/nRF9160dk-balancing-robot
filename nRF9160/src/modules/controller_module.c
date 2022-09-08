@@ -216,7 +216,7 @@ int setup()
  *                                                                                      */
 //========================================================================================
 
-static bool event_handler(const struct event_header *eh)
+static bool event_handler(const struct app_event_header *eh)
 {
     struct controller_msg_data msg = {0};
     bool enqueue_msg = false;
@@ -283,5 +283,5 @@ K_THREAD_DEFINE(controller_module_thread, CONFIG_CONTROLLER_THREAD_STACK_SIZE,
                 module_thread_fn, NULL, NULL, NULL,
                 K_HIGHEST_APPLICATION_THREAD_PRIO, 0, 0);
 
-EVENT_LISTENER(MODULE, event_handler);
-EVENT_SUBSCRIBE(MODULE, imu_module_event);
+APP_EVENT_LISTENER(MODULE, event_handler);
+APP_EVENT_SUBSCRIBE(MODULE, imu_module_event);

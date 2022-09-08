@@ -6,7 +6,7 @@
 
 #include <zephyr.h>
 #include <zephyr/types.h>
-#include <event_manager.h>
+#include <app_event_manager.h>
 #include "modules_common.h"
 
 #include <logging/log.h>
@@ -15,7 +15,7 @@ LOG_MODULE_REGISTER(modules_common, CONFIG_MODULES_COMMON_LOG_LEVEL);
 
 struct event_prototype
 {
-    struct event_header header;
+    struct app_event_header header;
     uint8_t event_id;
 };
 
@@ -50,7 +50,7 @@ int module_get_next_msg(struct module_data *module, void *msg, k_timeout_t timeo
             (struct event_type *)evt_proto->header.type_id;
         char buf[50];
 
-        event->log_event(&evt_proto->header, buf, sizeof(buf));
+        event->log_event_func(&evt_proto->header);
 
         LOG_DBG("%s module: Dequeued %s",
                 module->name,
@@ -89,7 +89,7 @@ int module_enqueue_msg(struct module_data *module, void *msg)
             (struct event_type *)evt_proto->header.type_id;
         char buf[50];
 
-        event->log_event(&evt_proto->header, buf, sizeof(buf));
+        event->log_event_func(&evt_proto->header);
 
         LOG_DBG("%s module: Enqueued: %s", log_strdup(module->name),
                 log_strdup(buf));
