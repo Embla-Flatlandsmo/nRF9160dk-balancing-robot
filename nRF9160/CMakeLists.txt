@@ -4,7 +4,7 @@
 #
 
 cmake_minimum_required(VERSION 3.20.0)
-
+set(BOARD nrf9160dk_nrf9160_ns)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project("Balancing Robot")
 
@@ -25,3 +25,5 @@ target_include_directories(app PRIVATE src)
 # Application directories
 add_subdirectory(src/modules)
 add_subdirectory(src/events)
+add_subdirectory(src/util)
+add_subdirectory(drivers)

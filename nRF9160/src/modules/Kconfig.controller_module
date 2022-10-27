@@ -14,7 +14,6 @@ config CONTROLLER_THREAD_STACK_SIZE
 	int "Controller module thread stack size"
 	default 2048
 
-
 config STATIC_SET_POINT_PITCH
     int "Static set point used as an 'anchor' when changing pitch set point"
     help

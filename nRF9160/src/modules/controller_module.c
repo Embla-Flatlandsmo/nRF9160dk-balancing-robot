@@ -9,14 +9,15 @@
 #include <drivers/sensor.h>
 
 #include <stdio.h>
-
+#define MODULE controller_module
 #include "modules_common.h"
 #include "events/imu_module_event.h"
 #include "../../drivers/motors/motor.h"
 
-#include <util/pid.h>
+// TODO: Find out how to import CMSIS DSP Controller functions
+// #include <hal/cmsis/CMSIS/DSP/Include/dsp/controller_functions.h>
 
-#define MODULE controller_module
+#include "util/pid.h"
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
@@ -37,7 +38,7 @@ static struct PID_time_t
 
 static PID_t PID_pitch;
 static PID_t PID_speed;
-
+// arm_pid_instance_f32 pitch_pid;
 struct controller_msg_data
 {
     union
@@ -69,7 +70,7 @@ const struct device *device_motor_b = DEVICE_DT_GET(DT_ALIAS(motorb));
 //========================================================================================
 static int init_motors()
 {
-    // LOG_DBG("Initializing motor drivers");
+    LOG_DBG("Initializing motor drivers");
     int err;
     err = !device_is_ready(device_motor_a);
     if (err)
@@ -91,7 +92,6 @@ static int set_motor_speed(uint8_t speed)
 {
     motor_drive_continous(device_motor_a, speed, 100, 1);
     motor_drive_continous(device_motor_b, speed, 100, 1);
-    // k_work_schedule(&stop_motor_work, K_MSEC(time));
     return 0;
 }
 
@@ -167,7 +167,7 @@ void update_controller(float speed, float pitch_angle, short disturbance)
         PID_pitch.set_point = speed_output;
         pid_time.prev_speed_time_ms = current_time_ms;
 
-        LOG_DBG("Speed output: %d", speed_output);
+        LOG_DBG("Speed output: %f", speed_output);
 
         pitch_output = update_PID(&PID_pitch, pitch_angle, ((float)current_time_ms - (float)pid_time.prev_pitch_time_ms) / 1000.0f);
         pitch_output = 0.7f * prev_pitch_output + 0.3f * pitch_output;
@@ -176,12 +176,9 @@ void update_controller(float speed, float pitch_angle, short disturbance)
 
         loop_counter++;
 
-        LOG_DBG("Pitch PID output: %d", pitch_output);
+        LOG_DBG("Pitch PID output: %f", pitch_output);
 
-        // TODO: call motor driver API
         set_motor_speed(speed_output);
-        // set_motor_speed(motor_a, speed_a)
-        // set_motor_speed(motor_b, speed_b)
     }
 
     // Shut down motors if pitch angle is out of bounds (fail safe)
@@ -208,6 +205,7 @@ int setup()
     pid_time.prev_pitch_time_ms = current_time;
     pid_time.prev_speed_time_ms = current_time;
     init_motors();
+    return 0;
 }
 
 //========================================================================================
@@ -216,7 +214,7 @@ int setup()
  *                                                                                      */
 //========================================================================================
 
-static bool event_handler(const struct app_event_header *eh)
+static bool app_event_handler(const struct app_event_header *eh)
 {
     struct controller_msg_data msg = {0};
     bool enqueue_msg = false;
@@ -264,16 +262,25 @@ static void module_thread_fn(void)
     {
         LOG_ERR("setup, error %d", err);
     }
+
     while (true)
     {
+        // LOG_DBG("Controller waiting for msg");
+        // set_motor_speed((uint8_t)UINT8_MAX);
         err = module_get_next_msg(&self, &msg, K_FOREVER);
         if (err == 0)
         {
+            if (IS_EVENT((&msg), imu, IMU_EVT_MOVEMENT_DATA_READY))
+            {
+                // float pitch = msg.module.imu.angles.values[0];
+                // update_controller(0, pitch, 0);
+            }
             // If we get a new message, update the controller outputs
             // TODO: Get IMU data from message.
             // MPU9250 has an onboard DMP, but I couldn't find it in
             // the driver. Implementing use of the DMP is probably a fun challenge :)
             // TODO: update_controller(horizontal_speed, angle, accel[2])
+            // update_controller(horizontal_speed, angle, accel[2]);
         } 
     }
 
@@ -283,5 +290,5 @@ K_THREAD_DEFINE(controller_module_thread, CONFIG_CONTROLLER_THREAD_STACK_SIZE,
                 module_thread_fn, NULL, NULL, NULL,
                 K_HIGHEST_APPLICATION_THREAD_PRIO, 0, 0);
 
-APP_EVENT_LISTENER(MODULE, event_handler);
+APP_EVENT_LISTENER(MODULE, app_event_handler);
 APP_EVENT_SUBSCRIBE(MODULE, imu_module_event);

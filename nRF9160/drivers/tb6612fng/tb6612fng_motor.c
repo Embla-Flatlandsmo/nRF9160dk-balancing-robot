@@ -22,40 +22,47 @@ struct motor_conf
     struct pwm_dt_spec pwm;
 };
 
-static int _drive_continous(const struct device *dev, int32_t power)
+static int _drive_continous(const struct device *dev, uint8_t power_numerator, uint8_t power_denominator, bool direction)
 {
     struct motor_conf *conf = (struct motor_conf *)dev->config;
+    if (power_numerator == 0) 
+    {
+        gpio_pin_set_dt(&conf->gpio1, 0);
+        gpio_pin_set_dt(&conf->gpio2, 0);
+    }
 
     if (conf->gpio1.port != NULL && conf->gpio2.port != NULL)
     {
-        if (power > 0)
+        if (direction)
         { // CW
             gpio_pin_set_dt(&conf->gpio1, 1);
             gpio_pin_set_dt(&conf->gpio2, 0);
         }
-        else if (power < 0)
+        else if (!direction)
         { // CCW
             gpio_pin_set_dt(&conf->gpio1, 0);
             gpio_pin_set_dt(&conf->gpio2, 1);
-        } else {
+        } else if (power_numerator == 0) {
             gpio_pin_set_dt(&conf->gpio1, 0);
             gpio_pin_set_dt(&conf->gpio2, 0);
-        }
+        } 
     }
-    else if (power < 0)
+    else if (direction)
     {
-        LOG_WRN("Negative power %d given but driver has no direction control GPIOs", power);
+        LOG_WRN("Direction specified but driver has no direction control GPIOs");
     }
+    uint32_t pulse = (conf->pwm.period / power_denominator) * power_numerator;
+    LOG_ERR("Pulse: %d", pulse);
+    LOG_ERR("Period: ");
+    int err = pwm_set_pulse_dt(&conf->pwm, pulse);
 
-    int32_t abs_power = power >= 0 ? power : -power;
-
-    int err = pwm_set_pulse_dt(&conf->pwm, abs_power);
-    if (err) {
+    if (err)
+    {
         LOG_ERR("Failed to set PWM pulse: Error %d", err);
         return err;
     }
 
-    LOG_DBG("Setting power on motor %s to %d", dev->name, abs_power);
+    LOG_DBG("Setting power on motor %s to %d/%d with pulse width %d and period %d", dev->name, power_numerator, power_denominator, pulse, conf->pwm.period);
     return 0;
 }
 

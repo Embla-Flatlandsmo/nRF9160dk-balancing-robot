@@ -57,6 +57,12 @@ extern "C"
         double values[GYROSCOPE_CHANNELS];
     };
 
+    struct imu_module_angles
+    {
+        int64_t timestamp;
+        float values[3];
+    };
+
     struct imu_module_event
     {
         struct app_event_header header;
@@ -64,8 +70,9 @@ extern "C"
         enum imu_module_event_type type;
         int err;
 
-        struct imu_module_accel_data accel;
-        struct imu_module_gyro_data gyro;
+        // struct imu_module_accel_data accel;
+        // struct imu_module_gyro_data gyro;
+        struct imu_module_angles angles;
 
     };
 

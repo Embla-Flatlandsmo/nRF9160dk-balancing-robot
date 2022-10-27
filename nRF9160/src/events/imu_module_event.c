@@ -45,16 +45,21 @@ static void log_imu_event(const struct app_event_header *eh)
     }
     else if (event->type == IMU_EVT_MOVEMENT_DATA_READY)
     {
-        APP_EVENT_MANAGER_LOG(eh, "%s - Acc (X, Y, Z): (%.2f, %.2f, %.2f)",
+        APP_EVENT_MANAGER_LOG(eh, "%s - Angles (P, R, Y): (%.2f, %.2f, %.2f)",
                           get_evt_type_str(event->type),
-                          event->accel.values[0],
-                          event->accel.values[1],
-                          event->accel.values[2]);
-        APP_EVENT_MANAGER_LOG(eh, "%s - Gyr (X, Y, Z): (%.2f, %.2f, %.2f)",
-                          get_evt_type_str(event->type),
-                          event->gyro.values[0],
-                          event->gyro.values[1],
-                          event->gyro.values[2]);
+                          event->angles.values[0],
+                          event->angles.values[1],
+                          event->angles.values[2]);
+        // APP_EVENT_MANAGER_LOG(eh, "%s - Acc (X, Y, Z): (%.2f, %.2f, %.2f)",
+        //                   get_evt_type_str(event->type),
+        //                   event->accel.values[0],
+        //                   event->accel.values[1],
+        //                   event->accel.values[2]);
+        // APP_EVENT_MANAGER_LOG(eh, "%s - Gyr (X, Y, Z): (%.2f, %.2f, %.2f)",
+        //                   get_evt_type_str(event->type),
+        //                   event->gyro.values[0],
+        //                   event->gyro.values[1],
+        //                   event->gyro.values[2]);
     }
     else
     {
