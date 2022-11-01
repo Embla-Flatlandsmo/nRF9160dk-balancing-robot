@@ -20,7 +20,7 @@
 		gyro-sr-div = <200>;
 		gyro-dlpf = <92>;
 		gyro-fs = <2000>;
-		accel-fs = <8>;
+		accel-fs = <2>;
 		accel-dlpf = "21.2";
 		irq-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
 	};

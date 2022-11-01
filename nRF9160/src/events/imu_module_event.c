@@ -47,19 +47,9 @@ static void log_imu_event(const struct app_event_header *eh)
     {
         APP_EVENT_MANAGER_LOG(eh, "%s - Angles (P, R, Y): (%.2f, %.2f, %.2f)",
                           get_evt_type_str(event->type),
-                          event->angles.values[0],
-                          event->angles.values[1],
-                          event->angles.values[2]);
-        // APP_EVENT_MANAGER_LOG(eh, "%s - Acc (X, Y, Z): (%.2f, %.2f, %.2f)",
-        //                   get_evt_type_str(event->type),
-        //                   event->accel.values[0],
-        //                   event->accel.values[1],
-        //                   event->accel.values[2]);
-        // APP_EVENT_MANAGER_LOG(eh, "%s - Gyr (X, Y, Z): (%.2f, %.2f, %.2f)",
-        //                   get_evt_type_str(event->type),
-        //                   event->gyro.values[0],
-        //                   event->gyro.values[1],
-        //                   event->gyro.values[2]);
+                          (float)event->angles.pitch,
+                          (float)event->angles.roll,
+                          0.0);
     }
     else
     {

@@ -21,10 +21,6 @@ extern "C"
 {
 #endif
 
-/** Number of accelerometer channels. */
-#define ACCELEROMETER_CHANNELS 3
-#define GYROSCOPE_CHANNELS 3
-
     /** @brief Enum containing types of imu events emitted. */
     enum imu_module_event_type
     {
@@ -39,28 +35,11 @@ extern "C"
         IMU_EVT_GYROSCOPE_ERROR
     };
 
-    /** @brief Structure used to provide acceleration data. */
-    struct imu_module_accel_data
-    {
-        /** Uptime when the data was sampled. */
-        int64_t timestamp;
-        /** Acceleration in X, Y and Z planes in m/s2. */
-        double values[ACCELEROMETER_CHANNELS];
-    };
-
-    /** @brief Structure used to provide angular velocity data. */
-    struct imu_module_gyro_data
-    {
-        /** Uptime when the data was sampled. */
-        int64_t timestamp;
-        /** Angular velocity in X, Y and Z axis in deg/sec. */
-        double values[GYROSCOPE_CHANNELS];
-    };
-
     struct imu_module_angles
     {
         int64_t timestamp;
-        float values[3];
+        double pitch;
+        double roll;
     };
 
     struct imu_module_event
@@ -70,8 +49,6 @@ extern "C"
         enum imu_module_event_type type;
         int err;
 
-        // struct imu_module_accel_data accel;
-        // struct imu_module_gyro_data gyro;
         struct imu_module_angles angles;
 
     };

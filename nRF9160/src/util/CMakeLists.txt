@@ -5,9 +5,5 @@
 #
 
 target_include_directories(app PRIVATE .)
-target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/eulerconversion.c)
+# target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/eulerconversion.c)
 target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pid.c)
-
-target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dmp/quaternion.c)
-target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dmp/sensor_processing_lib.c)
-target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dmp/vector_3d.c)
