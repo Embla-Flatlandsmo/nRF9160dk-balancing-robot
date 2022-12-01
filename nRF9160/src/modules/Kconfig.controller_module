@@ -18,7 +18,7 @@ config STATIC_SET_POINT_PITCH
     int "Static set point used as an 'anchor' when changing pitch set point"
     help
       This is manually set by finding the pitch angle at which the robot balances without input
-    default 90
+    default -90
 
 config STATIC_SET_POINT_SPEED
     int "Static set point is used as an 'anchor' when changing speed set point"
@@ -46,27 +46,32 @@ config SPEED_RANGE
     default 4
 
 ## Pitch PID
+### TODO: Tune these
 config KP_PITCH
     int "Proportional gain of PID controller for pitch"
     help
-        Note that the gain is divided by 100 in the source code.
-    default 180000
+        Note that the gain is divided by 1000 in the source code.
+    default 18000
+    # default 180000
+    # default 180000
 
 config KI_PITCH
     int "Integral gain of PID controller for pitch"
     help
-        Note that the gain is divided by 100 in the source code.
-    default 130000
+        Note that the gain is divided by 1000 in the source code.
+    default 0
+    # default 130000
 
 config KD_PITCH
     int "Derivative gain of PID controller for pitch"
     help
-        Note that the gain is divided by 100 in the source code.
-    default 2500
+        Note that the gain is divided by 1000 in the source code.
+    default 3600
+    # default 2500
 
 config PITCH_INTEGRATION_LIMITS
     int "Upper and lower integration limits of pitch PID"
-    default 4000
+    default 400
 
 ## Yaw PID
 config KP_YAW
@@ -119,6 +124,10 @@ config SPEED_OUTPUT_LIMITS
     int "Upper and lower output limits of speed PID"
     default 10
 
+## Motor scalings
+config MOTOR_CONSTANT
+    int "Scales controller output to motor range"
+    default 20
 endif # CONTROLLER_MODULE
 
 module = CONTROLLER_MODULE

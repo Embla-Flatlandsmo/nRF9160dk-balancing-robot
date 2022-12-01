@@ -5,7 +5,6 @@ typedef struct
     float set_point;
     float error;
     float last_error;
-    float time_prev_update;
 
     float kp;
     float ki;

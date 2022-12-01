@@ -47,8 +47,8 @@ static void log_imu_event(const struct app_event_header *eh)
     {
         APP_EVENT_MANAGER_LOG(eh, "%s - Angles (P, R, Y): (%.2f, %.2f, %.2f)",
                           get_evt_type_str(event->type),
-                          (float)event->angles.pitch,
-                          (float)event->angles.roll,
+                          event->angles.pitch,
+                          event->angles.roll,
                           0.0);
     }
     else

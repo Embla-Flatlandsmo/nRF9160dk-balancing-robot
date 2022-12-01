@@ -17,10 +17,11 @@
 		compatible = "invensense,mpu9250";
 		reg = <0x68>;
 		label = "MPU9250";
-		gyro-sr-div = <200>;
-		gyro-dlpf = <92>;
-		gyro-fs = <2000>;
-		accel-fs = <2>;
+		gyro-sr-div = <0>;
+		// TODO: tune dlpfs
+		gyro-dlpf = <10>;
+		gyro-fs = <1000>;
+		accel-fs = <8>;
 		accel-dlpf = "21.2";
 		irq-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
 	};

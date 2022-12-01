@@ -38,8 +38,8 @@ extern "C"
     struct imu_module_angles
     {
         int64_t timestamp;
-        double pitch;
-        double roll;
+        float pitch;
+        float roll;
     };
 
     struct imu_module_event

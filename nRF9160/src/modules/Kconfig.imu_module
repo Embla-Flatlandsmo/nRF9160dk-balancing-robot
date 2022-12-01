@@ -16,7 +16,7 @@ config IMU_THREAD_STACK_SIZE
 
 config IMU_MESSAGE_FREQUENCY
 	int "Number of event messages per second"
-	default 1
+	default 50
 
 endif # IMU_MODULE
 

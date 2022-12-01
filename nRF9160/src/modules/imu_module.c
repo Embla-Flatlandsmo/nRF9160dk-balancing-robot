@@ -19,8 +19,7 @@
 
 #include "modules_common.h"
 
-#define IMU_THREAD_PRIORITY -1
-#define IMU_THREAD_SLEEP 1.0 / (float)CONFIG_IMU_MESSAGE_FREQUENCY
+#define IMU_THREAD_SLEEP_MSEC 1000.0 / (float)CONFIG_IMU_MESSAGE_FREQUENCY
 
 #define MODULE imu_module
 
@@ -42,6 +41,19 @@ static struct zsl_fus_drv aqua_drv = {
 	.config = &aqua_cfg,
 };
 
+/* Config settings for the Madgwick filter. */
+// static struct zsl_fus_madg_cfg madg_cfg = {
+// 	.beta = 0.174,
+// };
+
+// static struct zsl_fus_drv madgwick_drv = {
+// 	.init_handler = zsl_fus_madg_init,
+// 	.feed_handler = zsl_fus_madg_feed,
+// 	.error_handler = zsl_fus_madg_error,
+// 	.config = &madg_cfg,
+// };
+
+
 struct zsl_quat q = { .r = 1.0, .i = 0.0, .j = 0.0, .k = 0.0 };
 
 static struct zsl_euler movement_data_to_angles(struct sensor_value accel_meas[3], struct sensor_value gyro_meas[3])
@@ -59,6 +71,7 @@ static struct zsl_euler movement_data_to_angles(struct sensor_value accel_meas[3
 
 	LOG_DBG("Accel (X,Y,Z) - (%.2f, %.2f, %.2f)", (float)av.data[0], (float)av.data[1], (float)av.data[2]);
 	LOG_DBG("Gyro (X,Y,Z) - (%.2f, %.2f, %.2f)", (float)gv.data[0], (float)gv.data[1], (float)gv.data[2]);
+	// madgwick_drv.feed_handler(&av, NULL, &gv, NULL, &q, madgwick_drv.config);
 	aqua_drv.feed_handler(&av, NULL, &gv, NULL, &q, aqua_drv.config);
 
 	zsl_quat_to_euler(&q, &e);
@@ -80,8 +93,8 @@ static void angle_data_send(const struct zsl_euler angles)
 	struct imu_module_event *imu_module_event =
 		new_imu_module_event();
 	/* Somehow the angle output swaps roll and pitch*/
-	imu_module_event->angles.pitch = angles.x;
-	imu_module_event->angles.roll = angles.y;
+	imu_module_event->angles.pitch = (float)angles.x;
+	imu_module_event->angles.roll = (float)angles.y;
 
 	imu_module_event->angles.timestamp = k_uptime_get();
 	imu_module_event->type = IMU_EVT_MOVEMENT_DATA_READY;
@@ -151,9 +164,11 @@ static void handle_mpu9250_drdy(const struct device *dev,
 static void module_thread_fn(void)
 {
 	/* Init filter at 100 Hz. */
-	aqua_drv.init_handler(100.0, aqua_drv.config);
-	//TODO: measurements dont seem right
 
+	aqua_drv.init_handler(10.0, aqua_drv.config);
+	// madgwick_drv.init_handler(1.2, madgwick_drv.config);
+	// aqua_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, aqua_drv.config);
+	//TODO: measurements dont seem right
 
 	k_sleep(K_SECONDS(2)); // Wait for MPU9250 to initialize
 	const struct device *mpu9250 = device_get_binding("MPU9250");
@@ -162,11 +177,11 @@ static void module_thread_fn(void)
 		LOG_ERR("MPU9250 not found");
 		return;
 	}
-	LOG_DBG("IMU thread initialized");
+	LOG_DBG("IMU thread initialized. ms between IMU messages: %f", IMU_THREAD_SLEEP_MSEC);
 	while (true)
 	{
 		process_mpu9250(mpu9250);
-		k_sleep(K_SECONDS(IMU_THREAD_SLEEP));
+		k_sleep(K_MSEC(IMU_THREAD_SLEEP_MSEC));
 	}
 }
 
@@ -182,6 +197,6 @@ static bool event_handler(const struct app_event_header *eh)
 
 K_THREAD_DEFINE(imu_module_thread, CONFIG_IMU_THREAD_STACK_SIZE,
 				module_thread_fn, NULL, NULL, NULL,
-				K_HIGHEST_APPLICATION_THREAD_PRIO, 0, 0);
+				1, 0, 0);
 
 APP_EVENT_LISTENER(MODULE, event_handler);
