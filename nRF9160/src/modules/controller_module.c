@@ -23,9 +23,8 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 
-#define KP_PITCH 6500
-#define KI_PITCH 150
-// #define KI_PITCH 0
+#define KP_PITCH 3000
+#define KI_PITCH 50
 #define KD_PITCH 0
 
 // #define KP_PITCH                        1200.0f
@@ -33,7 +32,7 @@ LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 // #define KD_PITCH                        20.0f
 
 #define ANGLE_NORMALIZED_CONSTANT   -CONFIG_STATIC_SET_POINT_PITCH
-#define STATIC_SET_POINT -88
+#define STATIC_SET_POINT -90
 //========================================================================================
 /*                                                                                      *
  *                                     Structs etc                                      *
@@ -42,7 +41,10 @@ LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 
 PID_t PID_pitch;
 
-float prev_pitch = -89.5;
+PID_t PID_speed;
+
+
+float prev_pitch = -90;
 
 struct controller_msg_data
 {
@@ -256,7 +258,7 @@ void update_controller(float pitch)
         float pitch_output = update_PID(&PID_pitch, pitch_angle, delta_time_s);
         // pitch_output = CLAMP(pitch_output, -99.0, 99.0);
         // pitch_output = 0.7f * prev_pitch_output + 0.3f * pitch_output;
-        pitch_output = 0.6* CLAMP(pitch_output, -100.0, 100.0) + 0.4 * prev_pitch_output;
+        pitch_output = 0.3* CLAMP(pitch_output, -100.0, 100.0) + 0.7 * prev_pitch_output;
         prev_pitch_output = pitch_output;
         set_motor_speed(pitch_output);
         LOG_DBG("Controller pitch_output: %f", pitch_output);
