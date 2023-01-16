@@ -1,14 +1,14 @@
 
-#include <devicetree.h>
-#include <device.h>
-#include <drivers/gpio.h>
-#include <drivers/pwm.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/pwm.h>
 #include "../motors/motor.h"
 
 #define DT_DRV_COMPAT toshiba_tb6612fng_motor
 #define TB6612FNG_MOTOR_INIT_PRIORITY 60
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(tb6612fng_motor_driver, CONFIG_TB6612FNG_MOTOR_DRIVER_LOG_LEVEL);
 
 struct motor_data

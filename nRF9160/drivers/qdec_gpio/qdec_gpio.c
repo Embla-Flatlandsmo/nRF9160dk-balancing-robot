@@ -1,8 +1,8 @@
-#include <devicetree.h>
-#include <drivers/sensor.h>
-#include <drivers/gpio.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/sensor.h>
+#include <zephyr/drivers/gpio.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(sensor_qdec_gpio, CONFIG_SENSOR_LOG_LEVEL);
 
 #define DT_DRV_COMPAT nordic_qdec_gpio

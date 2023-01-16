@@ -1,6 +1,6 @@
 #pragma once
-#include <zephyr.h>
-#include <device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
 
 typedef int (*drive_continous_t)(const struct device *dev, uint8_t power_numerator, uint8_t power_denominator,  bool direction);
 

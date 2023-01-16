@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include "pid.h"
 
 #include "pid.h"

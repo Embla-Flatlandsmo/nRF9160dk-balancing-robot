@@ -7,7 +7,7 @@
 #ifndef _MODULES_COMMON_H_
 #define _MODULES_COMMON_H_
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #define IS_EVENT(_ptr, _mod, _evt) \
 		is_ ## _mod ## _module_event(&_ptr->module._mod.header) &&		\

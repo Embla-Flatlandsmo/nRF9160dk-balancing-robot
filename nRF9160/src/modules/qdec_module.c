@@ -12,7 +12,7 @@
 #include <caf/events/module_state_event.h>
 #include <app_event_manager.h>
 #include <zephyr/settings/settings.h>
-#include <drivers/sensor.h>
+#include <zephyr/drivers/sensor.h>
 #include "modules_common.h"
 #include "events/qdec_module_event.h"
 
