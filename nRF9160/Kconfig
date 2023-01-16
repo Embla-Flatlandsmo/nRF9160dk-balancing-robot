@@ -11,7 +11,7 @@ rsource "src/events/Kconfig"
 
 rsource "src/util/Kconfig"
 
-rsource "drivers/tb6612fng/Kconfig"
+rsource "drivers/Kconfig"
 endmenu
 
 menu "Zephyr Kernel"

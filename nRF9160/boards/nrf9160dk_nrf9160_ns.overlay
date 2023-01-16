@@ -96,4 +96,13 @@
 			input2-gpios = <&gpio0 2 0>;
 		};
 	};
+
+	// qdec: qdec {
+	// 	compatible = "nordic,qdec-gpio";
+	// 	status = "okay";
+	// 	label = "quadrature decoder";
+	// 	line-a-gpios = <&gpio0 10 0>; // TODO: change these
+	// 	line-b-gpios = <&gpio0 11 0>;
+	// 	ticks-per-rotation = <12>;
+	// };
 };

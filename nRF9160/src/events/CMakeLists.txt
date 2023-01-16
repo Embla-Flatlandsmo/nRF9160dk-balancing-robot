@@ -6,4 +6,5 @@
 
 target_sources(app PRIVATE
 	       ${CMAKE_CURRENT_SOURCE_DIR}/imu_module_event.c
+		   ${CMAKE_CURRENT_SOURCE_DIR}/qdec_module_event.c
 		   )

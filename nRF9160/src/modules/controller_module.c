@@ -27,10 +27,6 @@ LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 #define KI_PITCH 50
 #define KD_PITCH 0
 
-// #define KP_PITCH                        1200.0f
-// #define KI_PITCH                        8200.0f
-// #define KD_PITCH                        20.0f
-
 #define ANGLE_NORMALIZED_CONSTANT   -CONFIG_STATIC_SET_POINT_PITCH
 #define STATIC_SET_POINT -90
 //========================================================================================
@@ -40,7 +36,6 @@ LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 //========================================================================================
 
 PID_t PID_pitch;
-
 PID_t PID_speed;
 
 

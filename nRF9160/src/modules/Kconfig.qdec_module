@@ -1,0 +1,25 @@
+#
+# Copyright (c) 2022 Nordic Semiconductor
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menuconfig QDEC_MODULE
+	bool "QDEC module"
+	default y
+
+if QDEC_MODULE
+
+config QDEC_THREAD_STACK_SIZE
+	int "Sensor module thread stack size"
+	default 2048
+
+config QDEC_MESSAGE_FREQUENCY
+	int "Number of event messages per second"
+	default 50
+
+endif # QDEC_MODULE
+
+module = QDEC_MODULE
+module-str = QDEC module
+source "subsys/logging/Kconfig.template.log_config"

@@ -14,6 +14,11 @@ config IMU_EVENTS_LOG
 	bool "Enable logging for IMU module events"
 	default y
 
+
+config QDEC_EVENTS_LOG
+	bool "Enable logging for QDEC module events"
+	default y
+
 if PROFILER
 
 choice
