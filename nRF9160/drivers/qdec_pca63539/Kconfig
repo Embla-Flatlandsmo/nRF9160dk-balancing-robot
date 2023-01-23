@@ -1,0 +1,12 @@
+
+menuconfig QDEC_PCA63539
+    bool "Enable PCA63539 QDEC driver"
+    depends on SENSOR && I2C
+
+if QDEC_PCA63539
+
+module = QDEC_PCA63539_DRIVER
+module-str = qdec pca63539 driver
+source "subsys/logging/Kconfig.template.log_config"
+
+endif

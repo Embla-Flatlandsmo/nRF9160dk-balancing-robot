@@ -1,0 +1,5 @@
+description: |
+  Quadrature decoder on the pca63539 balancing robot shield.
+compatible: "nordic,pca63539-qdec"
+
+include: "i2c-device.yaml"

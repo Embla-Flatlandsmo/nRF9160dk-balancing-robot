@@ -3,11 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-&spi3 {
-	status = "disabled";	
-};
-
+ &spi3 {
+	status = "disabled";
+ };
+ 
+ 
 &i2c2 {
 	status = "okay";
 	compatible = "nordic,nrf-twim";
@@ -27,31 +27,16 @@
 	};
 };
 
-&pinctrl {
-	i2c2_default_alt: i2c2_default_alt {
-		group1 {
-			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
-				<NRF_PSEL(TWIM_SCL, 0, 13)>;
-		};
-	};
-	i2c2_sleep_alt: i2c2_sleep_alt {
-		group1 {
-			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
-				<NRF_PSEL(TWIM_SCL, 0, 13)>;
-		};
-	};
-	pwm1_default_alt: pwm1_default_alt {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
-					<NRF_PSEL(PWM_OUT1, 0, 1)>;
-		};
-	};
-	pwm1_sleep_alt: pwm1_sleep_alt {
-		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
-					<NRF_PSEL(PWM_OUT1, 0, 1)>;
-			low-power-enable;
-		};
+&i2c3 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c3_default_alt>;
+	pinctrl-1 = <&i2c3_sleep_alt>;
+	pinctrl-names = "default", "sleep";
+	shield_qdec: pca63539-qdec@28 {
+		compatible = "nordic,pca63539-qdec";
+		label = "PCA63539-QDEC";
+		reg = <0x28>;
 	};
 };
 
@@ -64,9 +49,6 @@
 
 / {
 	aliases {
-		// temp-sensor = &bme680;
-		// humidity-sensor = &bme680;
-		// pressure-sensor = &bme680;
 		accelerometer = &mpu9250;
 		gyroscope = &mpu9250;
 		magnetometer = &mpu9250;
@@ -96,13 +78,48 @@
 			input2-gpios = <&gpio0 2 0>;
 		};
 	};
+};
 
-	// qdec: qdec {
-	// 	compatible = "nordic,qdec-gpio";
-	// 	status = "okay";
-	// 	label = "quadrature decoder";
-	// 	line-a-gpios = <&gpio0 10 0>; // TODO: change these
-	// 	line-b-gpios = <&gpio0 11 0>;
-	// 	ticks-per-rotation = <12>;
-	// };
+
+&pinctrl {
+	i2c2_default_alt: i2c2_default_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
+					<NRF_PSEL(TWIM_SCL, 0, 13)>;
+		};
+	};
+	i2c2_sleep_alt: i2c2_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 11)>,
+					<NRF_PSEL(TWIM_SCL, 0, 13)>;
+		};
+	};
+
+	i2c3_default_alt: i2c3_default_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 30)>,
+					<NRF_PSEL(TWIM_SCL, 0, 31)>;
+		};
+	};
+
+	i2c3_sleep_alt: i2c3_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 30)>,
+					<NRF_PSEL(TWIM_SCL, 0, 31)>;
+		};
+	};
+	
+	pwm1_default_alt: pwm1_default_alt {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
+					<NRF_PSEL(PWM_OUT1, 0, 1)>;
+		};
+	};
+	pwm1_sleep_alt: pwm1_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 6)>,
+					<NRF_PSEL(PWM_OUT1, 0, 1)>;
+			low-power-enable;
+		};
+	};
 };

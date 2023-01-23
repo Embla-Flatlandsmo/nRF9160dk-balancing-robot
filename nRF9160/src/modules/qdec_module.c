@@ -6,22 +6,49 @@
 
 
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/sensor.h>
 #include <float.h>
 
 #define MODULE qdec_module
 #include <caf/events/module_state_event.h>
 #include <app_event_manager.h>
-#include <zephyr/settings/settings.h>
-#include <zephyr/drivers/sensor.h>
 #include "modules_common.h"
 #include "events/qdec_module_event.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(MODULE, CONFIG_QDEC_MODULE_LOG_LEVEL);
 
-struct device* qdec_dev;
+const struct device *qdec_dev = DEVICE_DT_GET(DT_ALIAS(motora));
+static float encoder_travels[2];
 
 #define DT_MSEC 1000.0/(float)CONFIG_QDEC_MESSAGE_FREQUENCY
+
+// void process_shield(const struct device *dev)
+// {
+// 	struct sensor_value rot[2];
+
+// 	int rc = sensor_sample_fetch(dev);
+// 	if (rc != 0)
+// 	{
+// 		LOG_ERR("Sample fetch failed: %d\n", rc);
+// 	}
+// 	if (rc == 0)
+// 	{
+// 		rc = sensor_channel_get(dev, SENSOR_CHAN_ROTATION,
+// 								rot);
+// 	}
+// 	if (rc == 0)
+// 	{
+// 		float rot_a = (float)(sensor_value_to_double(&rot[0]));
+// 		float rot_b = (float)(sensor_value_to_double(&rot[1]));
+// 		encoder_travels[0] = rot_a;
+// 		encoder_travels[1] = rot_b;
+// 		LOG_DBG("qdec A: %f, qdec B: %f", rot_a, rot_b);
+// 	}
+// }
 
 static void send_data_evt(float travel)
 {
@@ -43,7 +70,7 @@ K_TIMER_DEFINE(data_evt_timeout, data_evt_timeout_handler, NULL);
 
 void data_evt_timeout_work_handler(struct k_work *work)
 {
-	struct sensor_value rot;
+	struct sensor_value rot[2];
 	int err;
 	err = sensor_sample_fetch(qdec_dev);
 	if (err != 0)
@@ -58,25 +85,23 @@ void data_evt_timeout_work_handler(struct k_work *work)
 		return;
 	}
 
-	float qdec_travel = (float)sensor_value_to_double(&rot);
-	send_data_evt(qdec_travel);
+	float rot_a = (float)(sensor_value_to_double(&rot[0]));
+	float rot_b = (float)(sensor_value_to_double(&rot[1]));
+	encoder_travels[0] = rot_a;
+	encoder_travels[1] = rot_b;
+	send_data_evt(rot_a);
 }
 
 static int module_init(void)
 {
-	// if (!IS_ENABLED(CONFIG_QDEC_SIMULATE_INPUT))
-	// {
-	// 	qdec_dev = device_get_binding(DT_LABEL(DT_NODELABEL(qdec)));
-	// 	if (qdec_dev == NULL)
-	// 	{
-	// 		LOG_ERR("Failed to get bindings for qdec devices");
-	// 		return -ENODEV;
-	// 	}
-	// } else {
-	// 	LOG_DBG("Using simulated qdec inputs");
-	// }
+	const char *const label = DT_LABEL(DT_NODELABEL(shield_qdec));
+	qdec_dev = device_get_binding(label);
+	if (!qdec_dev)
+	{
+		LOG_ERR("Failed to find shield");
+	}
 
-	// k_timer_start(&data_evt_timeout, K_NO_WAIT, K_MSEC(DT_MSEC));
+	k_timer_start(&data_evt_timeout, K_NO_WAIT, K_MSEC(DT_MSEC));
 	return 0;
 }
 
