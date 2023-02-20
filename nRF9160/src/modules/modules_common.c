@@ -52,9 +52,9 @@ int module_get_next_msg(struct module_data *module, void *msg, k_timeout_t timeo
 
         event->log_event_func(&evt_proto->header);
 
-        LOG_DBG("%s module: Dequeued %s",
-                module->name,
-                log_strdup(buf));
+        // LOG_DBG("%s module: Dequeued %s",
+        //         module->name,
+        //         log_strdup(buf));
     }
 
     return err;
@@ -91,8 +91,8 @@ int module_enqueue_msg(struct module_data *module, void *msg)
 
         event->log_event_func(&evt_proto->header);
 
-        LOG_DBG("%s module: Enqueued: %s", log_strdup(module->name),
-                log_strdup(buf));
+        // LOG_DBG("%s module: Enqueued: %s", log_strdup(module->name),
+        //         log_strdup(buf));
     }
 
     return 0;

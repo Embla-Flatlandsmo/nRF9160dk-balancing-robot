@@ -12,6 +12,7 @@
 #define MODULE controller_module
 #include "modules_common.h"
 #include "events/imu_module_event.h"
+#include "events/qdec_module_event.h"
 #include "../../drivers/motors/motor.h"
 
 // CMSIS PID controller
@@ -46,6 +47,7 @@ struct controller_msg_data
     union
     {
         struct imu_module_event imu;
+        struct qdec_module_event qdec;
     } module;
 };
 
@@ -368,6 +370,10 @@ static void module_thread_fn(void)
             {
                 update_controller(msg.module.imu.angles.pitch);
             }
+            if (IS_EVENT((&msg), qdec, QDEC_EVT_DATA_READY));
+            {
+
+            }
         } 
     }
 
@@ -379,3 +385,4 @@ K_THREAD_DEFINE(controller_module_thread, CONFIG_CONTROLLER_THREAD_STACK_SIZE,
 
 APP_EVENT_LISTENER(MODULE, app_event_handler);
 APP_EVENT_SUBSCRIBE(MODULE, imu_module_event);
+APP_EVENT_SUBSCRIBE(MODULE, qdec_module_event);

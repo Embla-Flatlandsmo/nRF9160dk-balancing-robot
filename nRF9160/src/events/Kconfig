@@ -12,7 +12,7 @@ if EVENTS
 
 config IMU_EVENTS_LOG
 	bool "Enable logging for IMU module events"
-	default y
+	default n
 
 
 config QDEC_EVENTS_LOG

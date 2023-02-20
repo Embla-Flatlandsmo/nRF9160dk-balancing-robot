@@ -26,17 +26,6 @@
 		gyro-fs = <1000>;
 		accel-fs = <8>;
 		accel-dlpf = "21.2";
-		// gyro-sr-div = <100>;
-		// gyro-dlpf = <3600>;
-		// gyro-fs = <1000>;
-		// accel-fs = <8>;
-		// accel-dlpf = "21.2";
-
-		// TODO: tune dlpfs
-		// gyro-dlpf = <3600>;
-		// gyro-fs = <250>;
-		// accel-fs = <8>;
-		// accel-dlpf = "420";
 		irq-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
 	};
 };
