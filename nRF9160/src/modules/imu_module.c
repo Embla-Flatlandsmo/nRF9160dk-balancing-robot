@@ -165,10 +165,10 @@ static void module_thread_fn(void)
 {
 	/* Init filter at 100 Hz. */
 
-	aqua_drv.init_handler(10.0, aqua_drv.config);
-	// madgwick_drv.init_handler(1.2, madgwick_drv.config);
-	// aqua_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, aqua_drv.config);
-	//TODO: measurements dont seem right
+	// aqua_drv.init_handler(1000.0, aqua_drv.config);
+	// aqua_drv.init_handler(10.0, aqua_drv.config);
+	// madgwick_drv.init_handler(100.0, madgwick_drv.config);
+	aqua_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, aqua_drv.config);
 
 	k_sleep(K_SECONDS(2)); // Wait for MPU9250 to initialize
 	const struct device *mpu9250 = device_get_binding("MPU9250");

@@ -3,13 +3,144 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
+&button0 {
+	status = "disabled";
+};
+&button1 {
+	status = "disabled";
+};
+ &button2 {
+	status="disabled";
+ };
+ &button3 {
+ 	status = "disabled";
+	};
+&led3 {
+	status="disabled";
+ };
+ 
+ &spi1 {
+	status = "disabled";
+ };
+ 
+ 
 &i2c0 {
-	mpu6050@68 {
-		compatible = "invensense,mpu6050";
+	status = "okay";
+	compatible = "nordic,nrf-twim";
+	pinctrl-0 = <&i2c0_default_alt>;
+	pinctrl-1 = <&i2c0_sleep_alt>;
+	mpu9250: mpu9250@68 {
+		compatible = "invensense,mpu9250";
 		reg = <0x68>;
+		label = "MPU9250";
+		gyro-sr-div = <0>;
+		// TODO: tune dlpfs
+		gyro-dlpf = <10>;
+		gyro-fs = <1000>;
+		accel-fs = <8>;
+		accel-dlpf = "21.2";
+		irq-gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&i2c1 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c1_default_alt>;
+	pinctrl-1 = <&i2c1_sleep_alt>;
+	pinctrl-names = "default", "sleep";
+	shield_qdec: pca63539-qdec@28 {
+		compatible = "nordic,pca63539-qdec";
+		label = "PCA63539-QDEC";
+		reg = <0x28>;
+	};
+};
+
+&pwm1 {
+	status = "okay";
+	pinctrl-0 = <&pwm1_default_alt>;
+	pinctrl-1 = <&pwm1_sleep_alt>;
+	pinctrl-names = "default", "sleep";
+};
+
+/ {
+	aliases {
+		accelerometer = &mpu9250;
+		gyroscope = &mpu9250;
+		magnetometer = &mpu9250;
+		motora = &motor_0_a;
+		motorb = &motor_0_b;
+	};
+	motor_port0: motor_port0{
+		compatible = "toshiba,tb6612fng";
 		status = "okay";
-		label = "MPU6050";
-		int-gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
+		label = "motor_port_0";
+
+		motor_0_a: motor_a {
+			compatible = "toshiba,tb6612fng-motor";
+			status = "okay";
+			label = "motorA";
+			pwms = <&pwm1 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			input1-gpios = <&gpio0 15 0>;
+			input2-gpios = <&gpio0 16 0>;
+		};
+
+		motor_0_b: motor_b {
+			compatible = "toshiba,tb6612fng-motor";
+			status = "okay";
+			label = "motorB";
+			pwms = <&pwm1 1 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+			input1-gpios = <&gpio0 14 0>;
+			input2-gpios = <&gpio0 13 0>;
+		};
+	};
+};
+
+
+&pinctrl {
+	i2c0_default_alt: i2c0_default_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 23)>,
+					<NRF_PSEL(TWIM_SCL, 0, 25)>;
+					bias-pull-up;
+		};
+	};
+	i2c0_sleep_alt: i2c0_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 23)>,
+					<NRF_PSEL(TWIM_SCL, 0, 25)>;
+					bias-pull-up;
+		};
+	};
+
+	i2c1_default_alt: i2c1_default_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 26)>,
+					<NRF_PSEL(TWIM_SCL, 0, 27)>;
+					bias-pull-up;
+		};
+	};
+
+	i2c1_sleep_alt: i2c1_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 26)>,
+					<NRF_PSEL(TWIM_SCL, 0, 27)>;
+					bias-pull-up;
+		};
+	};
+	
+	pwm1_default_alt: pwm1_default_alt {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 17)>,
+					<NRF_PSEL(PWM_OUT1, 0, 12)>;
+			
+		};
+	};
+	pwm1_sleep_alt: pwm1_sleep_alt {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 17)>,
+					<NRF_PSEL(PWM_OUT1, 0, 12)>;
+			low-power-enable;
+		};
 	};
 };
