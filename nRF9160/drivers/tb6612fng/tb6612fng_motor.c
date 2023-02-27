@@ -52,8 +52,6 @@ static int _drive_continous(const struct device *dev, uint8_t power_numerator, u
         LOG_WRN("Direction specified but driver has no direction control GPIOs");
     }
     uint32_t pulse = (conf->pwm.period / power_denominator) * power_numerator;
-    LOG_ERR("Pulse: %d", pulse);
-    LOG_ERR("Period: ");
     int err = pwm_set_pulse_dt(&conf->pwm, pulse);
 
     if (err)

@@ -6,6 +6,19 @@
  &spi3 {
 	status = "disabled";
  };
+
+ &button0 {
+ 	status = "disabled";
+	};
+
+ &button1 {
+	status = "disabled";
+ };
+
+ &button2 {
+	status = "disabled";
+ };
+
  &button3 {
 	status="disabled";
  };

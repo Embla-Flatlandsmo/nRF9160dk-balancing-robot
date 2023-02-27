@@ -13,6 +13,7 @@
 #include "modules_common.h"
 #include "events/imu_module_event.h"
 #include "events/qdec_module_event.h"
+// #include <caf/events/click_event.h>
 #include "../../drivers/motors/motor.h"
 
 // CMSIS PID controller
@@ -24,12 +25,19 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 
-#define KP_PITCH 3000
-#define KI_PITCH 50
-#define KD_PITCH 0
 
-#define ANGLE_NORMALIZED_CONSTANT   -CONFIG_STATIC_SET_POINT_PITCH
-#define STATIC_SET_POINT -90
+#define KP_PITCH 10.0f
+#define KI_PITCH 0.0f
+#define KD_PITCH 0.0f
+
+#define KP_SPEED 0.8f
+#define KI_SPEED 0.9f
+#define KD_SPEED 0.04f
+
+#define QDEC_DT_MSEC 1000.0 / (float)CONFIG_QDEC_MESSAGE_FREQUENCY
+
+#define ANGLE_NORMALIZED_CONSTANT   86
+#define STATIC_SET_POINT -ANGLE_NORMALIZED_CONSTANT
 //========================================================================================
 /*                                                                                      *
  *                                     Structs etc                                      *
@@ -41,6 +49,7 @@ PID_t PID_speed;
 
 
 float prev_pitch = -90;
+float prev_position = 0.0;
 
 struct controller_msg_data
 {
@@ -52,11 +61,13 @@ struct controller_msg_data
 };
 
 
-int64_t current_uptime;
+int64_t speed_dt;
+int64_t pitch_dt;
+
 float prev_pitch_output = 0.0;
 
 /* Controller module message queue. */
-#define CONTROLLER_QUEUE_ENTRY_COUNT 10
+#define CONTROLLER_QUEUE_ENTRY_COUNT 30
 #define CONTROLLER_QUEUE_BYTE_ALIGNMENT 4
 
 K_MSGQ_DEFINE(msgq_controller, sizeof(struct controller_msg_data),
@@ -98,6 +109,18 @@ static int init_motors()
 
 static int set_motor_speed(float speed)
 {
+    
+    // uint8_t motor_speed = (uint8_t)(CLAMP((uint8_t)round(fabs((double)speed)), 0, 255));
+    // bool forwards = speed >= 0.0;
+    // if (forwards)
+    // {
+    //     motor_drive_continous(device_motor_a, motor_speed, 100, 1);
+    //     motor_drive_continous(device_motor_b, motor_speed, 100, 0);
+    // } else {
+    //     motor_drive_continous(device_motor_a, speed, 100, 0);
+    //     motor_drive_continous(device_motor_b, speed, 100, 1);
+    // }
+    // return 0;
     uint8_t motor_speed;
     if (speed < 0.0)
     {
@@ -211,6 +234,22 @@ void update_pitch_controller(float pitch)
 
 }
 
+void update_speed_controller(float position)
+{
+    static uint32_t prev_elapsed_time;
+    uint32_t current_time = k_uptime_get_32();
+    uint32_t delta_time = current_time - prev_elapsed_time;
+    prev_elapsed_time = current_time;
+    float delta_time_s = (float)delta_time / 1000.0f;
+    float speed = (position - prev_position) / delta_time_s;
+    float speed_output = update_PID(&PID_speed, speed, delta_time_s);
+    speed_output = CLAMP(speed_output, -CONFIG_SPEED_OUTPUT_LIMITS, CONFIG_SPEED_OUTPUT_LIMITS);
+
+    prev_position = position;
+    PID_pitch.set_point = speed_output;
+    return;
+}
+
 // void update_pitch_speed_controller(float pitch)
 // {
 //     int64_t delta_time_ms = k_uptime_delta(&current_uptime);
@@ -246,19 +285,22 @@ void update_pitch_controller(float pitch)
 void update_controller(float pitch)
 {
     float pitch_angle = pitch + ANGLE_NORMALIZED_CONSTANT; // Adding constant to center around zero degrees at upright position
+    LOG_DBG("Input pitch angle: %f", pitch);
+    LOG_DBG("Normalized Pitch angle: %f", pitch_angle);
     if (pitch_angle * pitch_angle <= CONFIG_ANGLE_FAILSAFE_LIMIT * CONFIG_ANGLE_FAILSAFE_LIMIT)
     {
-        LOG_DBG("Normalized pitch: %f", pitch_angle);
-        int64_t delta_time_ms = k_uptime_delta(&current_uptime);
-        float delta_time_s = delta_time_ms / 1000.0f;
-        LOG_DBG("Delta time: %f", delta_time_s);
+        static uint32_t prev_elapsed_time;
+        uint32_t current_time = k_uptime_get_32();
+        uint32_t delta_time = current_time - prev_elapsed_time;
+        prev_elapsed_time = current_time;
+        float delta_time_s = (float)delta_time / 1000.0f;
         float pitch_output = update_PID(&PID_pitch, pitch_angle, delta_time_s);
         // pitch_output = CLAMP(pitch_output, -99.0, 99.0);
-        // pitch_output = 0.7f * prev_pitch_output + 0.3f * pitch_output;
-        pitch_output = 0.3* CLAMP(pitch_output, -100.0, 100.0) + 0.7 * prev_pitch_output;
+        pitch_output = 0.7f * CLAMP(pitch_output, -100.0, 100.0) + 0.3f * pitch_output;
+        // pitch_output = 0.3* CLAMP(pitch_output, -100.0, 100.0) + 0.7 * prev_pitch_output;
         prev_pitch_output = pitch_output;
         set_motor_speed(pitch_output);
-        LOG_DBG("Controller pitch_output: %f", pitch_output);
+        // LOG_DBG("Controller pitch_output: %f", pitch_output);
 
     } else 
     {
@@ -277,9 +319,9 @@ int setup()
     PID_pitch.set_point = (float)(STATIC_SET_POINT + ANGLE_NORMALIZED_CONSTANT);
     PID_pitch.error = 0.0f;
     PID_pitch.last_error = 0.0f;
-    PID_pitch.kp = (float)KP_PITCH / 1000.0f;
-    PID_pitch.ki = (float)KI_PITCH / 1000.0f;
-    PID_pitch.kd = (float)KD_PITCH / 1000.0f;
+    PID_pitch.kp = (float)KP_PITCH;
+    PID_pitch.ki = (float)KI_PITCH;
+    PID_pitch.kd = (float)KD_PITCH;
     PID_pitch.i_lb = -(float)CONFIG_PITCH_INTEGRATION_LIMITS;
     PID_pitch.i_ub = (float)CONFIG_PITCH_INTEGRATION_LIMITS;
 
@@ -288,21 +330,26 @@ int setup()
     // PID_pitch.Ki = CONFIG_KI_PITCH / 1000.0;
     // PID_pitch.Kd = CONFIG_KD_PITCH / 1000.0;
 
-    // PID_pitch_speed.Kp = CONFIG_KP_SPEED /1000.0;
-    // PID_pitch_speed.Ki = CONFIG_KI_SPEED /1000.0;
-    // PID_pitch_speed.Kd = CONFIG_KD_SPEED /1000.0;
+    PID_speed.kp = (float)KP_SPEED;
+    PID_speed.ki = (float)KI_SPEED;
+    PID_speed.kd = (float)KD_SPEED;
+    PID_speed.i_lb = -(float)CONFIG_SPEED_INTEGRATION_LIMITS;
+    PID_speed.i_ub = (float)CONFIG_SPEED_INTEGRATION_LIMITS;
 
     // arm_pid_init_f32(&PID_pitch, true);
     LOG_DBG("Pitch PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f, i_lb = %.3f, i_ub = %.3f",
             PID_pitch.kp, PID_pitch.ki, PID_pitch.kd,
             PID_pitch.i_lb, PID_pitch.i_ub);
 
-
+    LOG_DBG("Speed PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f, i_lb = %.3f, i_ub = %.3f",
+            PID_speed.kp, PID_speed.ki, PID_speed.kd,
+            PID_speed.i_lb, PID_speed.i_ub);
     // arm_pid_init_f32(&PID_pitch_speed, true);
     // LOG_DBG("Pitch speed PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f", PID_pitch_speed.Kp, PID_pitch_speed.Ki, PID_pitch_speed.Kd);
 
     init_motors();
-    current_uptime = k_uptime_get();
+    pitch_dt = k_uptime_get();
+    speed_dt = k_uptime_get();
     return 0;
 }
 
@@ -316,6 +363,15 @@ static bool app_event_handler(const struct app_event_header *eh)
 {
     struct controller_msg_data msg = {0};
     bool enqueue_msg = false;
+
+
+    if (is_qdec_module_event(eh))
+    {
+        struct qdec_module_event *event = cast_qdec_module_event(eh);
+        msg.module.qdec = *event;
+
+        enqueue_msg = true;
+    }
 
     if (is_imu_module_event(eh))
     {
@@ -370,9 +426,9 @@ static void module_thread_fn(void)
             {
                 update_controller(msg.module.imu.angles.pitch);
             }
-            if (IS_EVENT((&msg), qdec, QDEC_EVT_DATA_READY));
+            if (IS_EVENT((&msg), qdec, QDEC_EVT_DATA_READY))
             {
-
+                // update_speed_controller(msg.module.qdec.travel);
             }
         } 
     }
@@ -386,3 +442,4 @@ K_THREAD_DEFINE(controller_module_thread, CONFIG_CONTROLLER_THREAD_STACK_SIZE,
 APP_EVENT_LISTENER(MODULE, app_event_handler);
 APP_EVENT_SUBSCRIBE(MODULE, imu_module_event);
 APP_EVENT_SUBSCRIBE(MODULE, qdec_module_event);
+APP_EVENT_SUBSCRIBE(MODULE, click_event);

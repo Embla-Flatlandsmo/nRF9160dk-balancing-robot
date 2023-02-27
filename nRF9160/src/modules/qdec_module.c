@@ -68,7 +68,7 @@ void process_qdec_data(const struct device *dev)
 		LOG_ERR("Qdec sensor_sample_fetch error: %d\n", err);
 		return;
 	}
-	err = sensor_channel_get(dev, SENSOR_CHAN_ROTATION, &rot);
+	err = sensor_channel_get(dev, SENSOR_CHAN_ROTATION, rot);
 	if (err != 0)
 	{
 		LOG_ERR("Qdec A sensor_channel_get error: %d\n", err);
