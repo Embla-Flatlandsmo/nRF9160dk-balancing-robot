@@ -26,18 +26,23 @@
 LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 
 
-#define KP_PITCH 10.0f
-#define KI_PITCH 0.0f
-#define KD_PITCH 0.0f
+#define KP_PITCH            14.5f
+#define KI_PITCH            20.0f
+#define KD_PITCH            0.3f
 
-#define KP_SPEED 0.8f
-#define KI_SPEED 0.9f
-#define KD_SPEED 0.04f
+#define KP_SPEED            0.0f
+#define KI_SPEED            0.0f
+#define KD_SPEED            0.0f
 
-#define QDEC_DT_MSEC 1000.0 / (float)CONFIG_QDEC_MESSAGE_FREQUENCY
+#define PITCH_OUTPUT_ALPHA  0.7f
 
-#define ANGLE_NORMALIZED_CONSTANT   86
-#define STATIC_SET_POINT -ANGLE_NORMALIZED_CONSTANT
+#define QDEC_DT_MSEC        1000.0 / (float)CONFIG_QDEC_MESSAGE_FREQUENCY
+
+#define ANGLE_NORMALIZED_CONSTANT   86.0f
+#define STATIC_SET_POINT            -ANGLE_NORMALIZED_CONSTANT
+
+#define MOTOR_SPEED_MAX     128
+
 //========================================================================================
 /*                                                                                      *
  *                                     Structs etc                                      *
@@ -104,38 +109,29 @@ static int init_motors()
         LOG_ERR("Motor b not ready: Error %d", err);
         return err;
     }
+
     return 0;
 }
 
 static int set_motor_speed(float speed)
 {
-    
-    // uint8_t motor_speed = (uint8_t)(CLAMP((uint8_t)round(fabs((double)speed)), 0, 255));
-    // bool forwards = speed >= 0.0;
-    // if (forwards)
-    // {
-    //     motor_drive_continous(device_motor_a, motor_speed, 100, 1);
-    //     motor_drive_continous(device_motor_b, motor_speed, 100, 0);
-    // } else {
-    //     motor_drive_continous(device_motor_a, speed, 100, 0);
-    //     motor_drive_continous(device_motor_b, speed, 100, 1);
-    // }
-    // return 0;
-    uint8_t motor_speed;
+    uint32_t motor_speed;
+
     if (speed < 0.0)
     {
-        motor_speed = (uint8_t)round(-1.0*speed);
-        motor_drive_continous(device_motor_a, motor_speed, 100, 1);
-        motor_drive_continous(device_motor_b, motor_speed, 100, 0);
+        motor_speed = (uint32_t)CLAMP((-1.0 * speed), 0, MOTOR_SPEED_MAX);
+        motor_drive_continous(device_motor_a, motor_speed, MOTOR_SPEED_MAX, 1);
+        motor_drive_continous(device_motor_b, motor_speed, MOTOR_SPEED_MAX, 0);
     } else if (speed > 0.0)
     {
-        motor_speed = (uint8_t)round(speed);
-        motor_drive_continous(device_motor_a, speed, 100, 0);
-        motor_drive_continous(device_motor_b, speed, 100, 1);
+        motor_speed = (uint32_t)CLAMP(speed, 0, MOTOR_SPEED_MAX);
+        motor_drive_continous(device_motor_a, motor_speed, MOTOR_SPEED_MAX, 0);
+        motor_drive_continous(device_motor_b, motor_speed, MOTOR_SPEED_MAX, 1);
     } else {
-        motor_drive_continous(device_motor_a, 0, 100, 0);
-        motor_drive_continous(device_motor_b, 0, 100, 0);
+        motor_drive_continous(device_motor_a, 0, MOTOR_SPEED_MAX, 0);
+        motor_drive_continous(device_motor_b, 0, MOTOR_SPEED_MAX, 0);
     }
+
     return 0;
 }
 
@@ -144,90 +140,6 @@ static int set_motor_speed(float speed)
  *                                     Controller                                       *
  *                                                                                      */
 //========================================================================================
-
-// void controller_init(void)
-// {
-//     PID_speed.set_point = CONFIG_STATIC_SET_POINT_SPEED;
-//     PID_speed.error = 0.0f;
-//     PID_speed.last_error = 0.0f;
-//     PID_speed.kp = CONFIG_KP_SPEED;
-//     PID_speed.ki = CONFIG_KI_SPEED;
-//     PID_speed.kd = CONFIG_KI_SPEED;
-//     PID_speed.i_lb = -CONFIG_SPEED_INTEGRATION_LIMITS;
-//     PID_speed.i_ub = CONFIG_SPEED_INTEGRATION_LIMITS;
-
-//     PID_pitch.set_point = CONFIG_STATIC_SET_POINT_PITCH + ANGLE_NORMALIZED_CONSTANT;
-//     PID_pitch.error = 0.0f;
-//     PID_pitch.last_error = 0.0f;
-//     PID_pitch.kp = CONFIG_KP_PITCH;
-//     PID_pitch.ki = CONFIG_KI_PITCH;
-//     PID_pitch.kd = CONFIG_KI_PITCH;
-//     PID_pitch.i_lb = CONFIG_PITCH_INTEGRATION_LIMITS;
-//     PID_pitch.i_ub = CONFIG_PITCH_INTEGRATION_LIMITS;
-
-//     /*    Yaw not in use    */
-//     //    PID_yaw.set_point    = 0;
-//     //    PID_yaw.error        = 0;
-//     //    PID_yaw.last_error   = 0;
-//     //    PID_yaw.kp           = KP_yaw;
-//     //    PID_yaw.ki           = KI_yaw;
-//     //    PID_yaw.kd           = KD_yaw;
-//     //    PID_yaw.i_lb         = PID_LOWER_INTEGRATION_LIMIT;
-//     //    PID_yaw.i_ub         = PID_UPPER_INTEGRATION_LIMIT;
-
-//     LOG_DBG("Controller initialized.");
-// }
-
-
-// void update_controller(float speed, float pitch_angle, short disturbance)
-// {
-//     // I don't like this function, I think it doesn't read well.
-//     // It's halfway rewritten from the base project.
-//     static float speed_output = 0;
-//     static float pitch_output = 0;
-//     static float yaw_output = 0;
-//     static float controller_output[2] = {0};
-//     static uint8_t loop_counter = 0;
-//     float current_time_ms;
-//     static bool first = true;
-//     static float prev_pitch_output;
-
-//     pitch_angle += ANGLE_NORMALIZED_CONSTANT; // Adding constant to center around zero degrees at upright position
-
-//     if (pitch_angle * pitch_angle <= CONFIG_ANGLE_FAILSAFE_LIMIT * CONFIG_ANGLE_FAILSAFE_LIMIT && !first)
-//     {
-//         current_time_ms = k_uptime_get();
-
-//         speed_output = update_PID(&PID_speed, speed, ((float)current_time_ms - (float)pid_time.prev_speed_time_ms) / 1000.0f);
-//         speed_output = CLAMP(speed_output, -CONFIG_SPEED_OUTPUT_LIMITS, CONFIG_SPEED_OUTPUT_LIMITS);
-
-//         PID_pitch.set_point = speed_output;
-//         pid_time.prev_speed_time_ms = current_time_ms;
-
-//         LOG_DBG("Speed output: %f", speed_output);
-
-//         pitch_output = update_PID(&PID_pitch, pitch_angle, ((float)current_time_ms - (float)pid_time.prev_pitch_time_ms) / 1000.0f);
-//         pitch_output = 0.7f * prev_pitch_output + 0.3f * pitch_output;
-//         prev_pitch_output = pitch_output;
-//         pid_time.prev_pitch_time_ms = current_time_ms;
-
-//         loop_counter++;
-
-//         LOG_DBG("Pitch PID output: %f", pitch_output);
-
-//         set_motor_speed(speed_output);
-//     }
-
-//     // Shut down motors if pitch angle is out of bounds (fail safe)
-//     else
-//     {
-//         PID_pitch.set_point = CONFIG_STATIC_SET_POINT_PITCH + ANGLE_NORMALIZED_CONSTANT;
-
-//         // TODO: Set motor pwm to 0
-//         set_motor_speed(0);
-//     }
-//     first = false;
-// }
 
 void update_pitch_controller(float pitch)
 {
@@ -243,71 +155,57 @@ void update_speed_controller(float position)
     float delta_time_s = (float)delta_time / 1000.0f;
     float speed = (position - prev_position) / delta_time_s;
     float speed_output = update_PID(&PID_speed, speed, delta_time_s);
-    speed_output = CLAMP(speed_output, -CONFIG_SPEED_OUTPUT_LIMITS, CONFIG_SPEED_OUTPUT_LIMITS);
+    speed_output = CLAMP(speed_output, -MOTOR_SPEED_MAX, MOTOR_SPEED_MAX);
+
+    printk("speed_output: %f\n", speed_output);
 
     prev_position = position;
     PID_pitch.set_point = speed_output;
     return;
 }
 
-// void update_pitch_speed_controller(float pitch)
-// {
-//     int64_t delta_time_ms = k_uptime_delta(&current_uptime);
-//     float delta_time_s = delta_time_ms / 1000.0;
-//     float speed_output = arm_pid_f32(&PID_pitch_speed, 0.0);
-//     speed_output = CLAMP(speed_output, -CONFIG_SPEED_OUTPUT_LIMITS, CONFIG_SPEED_OUTPUT_LIMITS);
-
-// }
-
-// void update_controller(float pitch)
-// {
-//     float centered_pitch = pitch + 90.0;
-//     if (centered_pitch * centered_pitch <= CONFIG_ANGLE_FAILSAFE_LIMIT * CONFIG_ANGLE_FAILSAFE_LIMIT)
-//     {
-//         int64_t delta_time_ms = k_uptime_delta(&current_uptime);
-//         float delta_time_s = delta_time_ms / 1000.0;
-//         // float speed_output = arm_pid_f32(&PID_pitch_speed, (pitch - prev_pitch)/delta_time_s);
-//         // prev_pitch = pitch;
-//         // speed_output = CLAMP(speed_output, -CONFIG_SPEED_OUTPUT_LIMITS, CONFIG_SPEED_OUTPUT_LIMITS);
-
-//         float pitch_output = arm_pid_f32(&PID_pitch, centered_pitch);
-//         pitch_output = 0.3 * CLAMP(pitch_output, -100.0, 100.0) + 0.7 * prev_pitch_output;
-//         prev_pitch_output = pitch_output;
-//         // set_motor_speed(pitch_output);
-//         LOG_DBG("Controller pitch_output: %f", pitch_output);
-//     } else 
-//     {
-//         // set_motor_speed(0.0);
-//     }
-
-// }
 
 void update_controller(float pitch)
 {
     float pitch_angle = pitch + ANGLE_NORMALIZED_CONSTANT; // Adding constant to center around zero degrees at upright position
-    LOG_DBG("Input pitch angle: %f", pitch);
+    // LOG_DBG("Input pitch angle: %f", pitch);
     LOG_DBG("Normalized Pitch angle: %f", pitch_angle);
-    if (pitch_angle * pitch_angle <= CONFIG_ANGLE_FAILSAFE_LIMIT * CONFIG_ANGLE_FAILSAFE_LIMIT)
-    {
-        static uint32_t prev_elapsed_time;
-        uint32_t current_time = k_uptime_get_32();
-        uint32_t delta_time = current_time - prev_elapsed_time;
-        prev_elapsed_time = current_time;
-        float delta_time_s = (float)delta_time / 1000.0f;
-        float pitch_output = update_PID(&PID_pitch, pitch_angle, delta_time_s);
-        // pitch_output = CLAMP(pitch_output, -99.0, 99.0);
-        pitch_output = 0.7f * CLAMP(pitch_output, -100.0, 100.0) + 0.3f * pitch_output;
-        // pitch_output = 0.3* CLAMP(pitch_output, -100.0, 100.0) + 0.7 * prev_pitch_output;
-        prev_pitch_output = pitch_output;
-        set_motor_speed(pitch_output);
-        // LOG_DBG("Controller pitch_output: %f", pitch_output);
 
-    } else 
-    {
+    if (pitch_angle * pitch_angle > CONFIG_ANGLE_FAILSAFE_LIMIT * CONFIG_ANGLE_FAILSAFE_LIMIT) {
         set_motor_speed(0.0);
+
+        return;
     }
 
+    static uint32_t prev_elapsed_time;
+    static float prev_pitch_output;
+    uint32_t current_time = k_uptime_get_32();
+    uint32_t delta_time = current_time - prev_elapsed_time;
+    prev_elapsed_time = current_time;
+    float delta_time_s = (float)delta_time / 1000.0f;
+    float pitch_output = update_PID(&PID_pitch, pitch_angle, delta_time_s);
+
+    static uint32_t prev_time;
+
+
+    // printk("@: %d\td:%d\t%f\n", current_time, current_time - prev_time, pitch_angle);
+
+    prev_time = current_time;
+
+
+    static bool first = true;
+
+    if (first) {
+        prev_pitch_output = pitch_output;
+        first = false;
+    }
+
+    float controller_output = pitch_output * PITCH_OUTPUT_ALPHA + (1 - PITCH_OUTPUT_ALPHA) * prev_pitch_output;
+    prev_pitch_output = pitch_output;
+
+    set_motor_speed(controller_output);
 }
+
 //========================================================================================
 /*                                                                                      *
  *                             Setup and other utils                                    *

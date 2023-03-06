@@ -7,6 +7,8 @@
 
 #define DT_DRV_COMPAT toshiba_tb6612fng_motor
 #define TB6612FNG_MOTOR_INIT_PRIORITY 60
+#define MOTOR_OUTPUT_DEBUG              0
+
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(tb6612fng_motor_driver, CONFIG_TB6612FNG_MOTOR_DRIVER_LOG_LEVEL);
@@ -22,10 +24,10 @@ struct motor_conf
     struct pwm_dt_spec pwm;
 };
 
-static int _drive_continous(const struct device *dev, uint8_t power_numerator, uint8_t power_denominator, bool direction)
+static int _drive_continous(const struct device *dev, uint32_t power_numerator, uint32_t power_denominator, bool direction)
 {
     struct motor_conf *conf = (struct motor_conf *)dev->config;
-    if (power_numerator == 0) 
+    if (power_numerator == 0)
     {
         gpio_pin_set_dt(&conf->gpio1, 0);
         gpio_pin_set_dt(&conf->gpio2, 0);
@@ -45,22 +47,30 @@ static int _drive_continous(const struct device *dev, uint8_t power_numerator, u
         } else if (power_numerator == 0) {
             gpio_pin_set_dt(&conf->gpio1, 0);
             gpio_pin_set_dt(&conf->gpio2, 0);
-        } 
+        }
     }
     else if (direction)
     {
         LOG_WRN("Direction specified but driver has no direction control GPIOs");
     }
+
     uint32_t pulse = (conf->pwm.period / power_denominator) * power_numerator;
+    LOG_DBG("%s: %d\t%d/%d\t%d\t%d", dev->name, (int)direction, (int)direction ? -1 * power_numerator : power_numerator, power_denominator, pulse, conf->pwm.period);
+
+
+#if MOTOR_OUTPUT_DEBUG
+    return 0;
+#endif
+
+
     int err = pwm_set_pulse_dt(&conf->pwm, pulse);
 
     if (err)
     {
-        LOG_ERR("Failed to set PWM pulse: Error %d", err);
+        LOG_ERR("Failed to set PWM pulse %d Error %d", pulse, err);
         return err;
     }
 
-    LOG_DBG("Setting power on motor %s to %d/%d with pulse width %d and period %d", dev->name, power_numerator, power_denominator, pulse, conf->pwm.period);
     return 0;
 }
 

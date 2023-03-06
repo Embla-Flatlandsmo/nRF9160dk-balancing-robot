@@ -2,7 +2,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 
-typedef int (*drive_continous_t)(const struct device *dev, uint8_t power_numerator, uint8_t power_denominator,  bool direction);
+typedef int (*drive_continous_t)(const struct device *dev, uint32_t power_numerator, uint32_t power_denominator,  bool direction);
 
 typedef int (*set_position_t)(const struct device *dev, int position, int32_t power, bool hold);
 
@@ -21,10 +21,10 @@ struct motor_api
  *              Relationship between power parameter and actual output from the motor depends
  *              on the underlying driver
  * @return 0 on success, negative errno code otherwise.
- *         -ENOTSUP if motor does not support continous rotation. 
+ *         -ENOTSUP if motor does not support continous rotation.
  *         Other error codes are defined by the underlying driver.
  */
-static inline int motor_drive_continous(const struct device *dev, uint8_t power_numerator, uint8_t power_denominator,  bool direction)
+static inline int motor_drive_continous(const struct device *dev, uint32_t power_numerator, uint32_t power_denominator,  bool direction)
 {
     const struct motor_api *api = (struct motor_api *)dev->api;
     if (api->drive_continous == NULL){
@@ -35,10 +35,10 @@ static inline int motor_drive_continous(const struct device *dev, uint8_t power_
 
 /**
  * @brief Set position of motor.
- * 
+ *
  * @param dev Motor device
  * @param position Position the motor shoul be moved to.
- * @param power Power with which to move the motor. Negative values move the motor towards 
+ * @param power Power with which to move the motor. Negative values move the motor towards
  *              Relationship between power parameter and actual output from the motor depends
  *              on the underlying driver
  * @param hold Attempts to hold position when reached if true. Powers off motor if false.

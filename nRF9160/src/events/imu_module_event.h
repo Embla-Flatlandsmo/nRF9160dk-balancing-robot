@@ -37,7 +37,7 @@ extern "C"
 
     struct imu_module_angles
     {
-        int64_t timestamp;
+        uint32_t timestamp;
         float pitch;
         float roll;
     };

@@ -89,6 +89,7 @@ static void module_thread_fn(void)
 	if (!qdec_dev)
 	{
 		LOG_ERR("Failed to find shield");
+		return;
 	}
 	LOG_DBG("IMU thread initialized. ms between QDEC messages: %f", DT_MSEC);
 	while (true)

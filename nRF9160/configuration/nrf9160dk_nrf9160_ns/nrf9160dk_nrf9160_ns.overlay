@@ -29,6 +29,7 @@
 	compatible = "nordic,nrf-twim";
 	pinctrl-0 = <&i2c2_default_alt>;
 	pinctrl-1 = <&i2c2_sleep_alt>;
+	zephyr,concat-buf-size = <20>;
 	mpu9250: mpu9250@68 {
 		compatible = "invensense,mpu9250";
 		reg = <0x68>;
