@@ -19,20 +19,18 @@
 
 #include "modules_common.h"
 
-#include "app_mpu.h"
-
-
 #define FUSION_ALGO_MADGWICK		0
 #define FUSION_ALGO_AQUA		1
 #define FUSION_ALGO_EKF			0
+#define FUSION_ALGO_COMPL		0
 
-#define ACCEL_ALPHA			(0.7f)
-#define GYRO_ALPHA			(0.7f)
+#define ACCEL_ALPHA			(0.9f)
+#define GYRO_ALPHA			(0.9f)
 #define MAGN_ALPHA			(0.05f)
-#define ANGLE_ALPHA			(0.7f)
+#define ANGLE_ALPHA			(0.9f)
 
-#define IMU_THREAD_SLEEP_USEC 		2000
-#define CONTROL_LOOP_INTERVAL_MS	10
+#define IMU_THREAD_SLEEP_USEC 		1000
+#define CONTROL_LOOP_INTERVAL_MS	2
 
 #define MODULE imu_module
 
@@ -97,10 +95,28 @@ static struct zsl_fus_drv kalm_drv = {
 	.config = &kalm_cfg,
 };
 
+#elif FUSION_ALGO_COMPL
+const float gyro_weight = 0.5;
+
+static float complementary_filter(double accel_y, double accel_z, double gyro_x)
+{
+	static float complementary_angle;
+	static int32_t prev_elapsed_time;
+
+	uint32_t current_time_ms = k_uptime_get_32();
+	uint32_t delta_time_ms = current_time_ms - prev_elapsed_time;
+	prev_elapsed_time = current_time_ms;
+	double delta_time_s = ((double)delta_time_ms) / 1000.0;
+
+	double accel_angle = accel_z / accel_y * 180 / ZSL_PI;
+	double gyro_angle_delta = gyro_x / delta_time_s;
+	complementary_angle = (float)(gyro_weight * (gyro_angle_delta + complementary_angle) + (1 - gyro_weight) * accel_angle);
+	return complementary_angle;
+}
+
 #else
 #error "Select a fusion algorithm"
 #endif
-
 
 struct zsl_quat q = { .r = 1.0, .i = 0.0, .j = 0.0, .k = 0.0 };
 
@@ -120,29 +136,23 @@ static struct zsl_euler movement_data_to_angles(
 
 	ZSL_VECTOR_DEF(av, 3);
 	ZSL_VECTOR_DEF(gv, 3);
-	// ZSL_VECTOR_DEF(mv, 3);
 	zsl_vec_init(&av);
 	zsl_vec_init(&gv);
-	// zsl_vec_init(&mv);
 
 	for (int i = 0; i < 3; i++) {
 		tmp_accel[i] = sensor_value_to_double(&accel_meas[i]);
 		tmp_gyro[i] = sensor_value_to_double(&gyro_meas[i]);
-		// tmp_magnetometer[i] = sensor_value_to_double(&magn_meas[i]);
 
 		if (first_done) {
 			av.data[i] = ACCEL_ALPHA * tmp_accel[i] + (1.0f - ACCEL_ALPHA) * prev_accel_meas[i];
 			gv.data[i] = GYRO_ALPHA * tmp_gyro[i] + (1.0f - GYRO_ALPHA) * prev_gyro_meas[i];
-			// mv.data[i] = MAGN_ALPHA * tmp_magnetometer[i] + (1.0f - MAGN_ALPHA) * prev_magn_meas[i];
 		} else {
 			av.data[i] = tmp_accel[i];
 			gv.data[i] = tmp_gyro[i];
-			// mv.data[i] = tmp_magnetometer[i];
 		}
 
 		prev_accel_meas[i] = av.data[i];
 		prev_gyro_meas[i] = gv.data[i];
-		// prev_magn_meas[i] = mv.data[i];
 	}
 
 	LOG_DBG("Accel (X,Y,Z) - (%.2f, %.2f, %.2f)", (float)av.data[0], (float)av.data[1], (float)av.data[2]);
@@ -155,6 +165,11 @@ static struct zsl_euler movement_data_to_angles(
 	aqua_drv.feed_handler(&av, NULL, &gv, NULL, &q, aqua_drv.config);
 #elif FUSION_ALGO_EKF
 	kalm_drv.feed_handler(&av, &mv, &gv, NULL, &q, kalm_drv.config);
+#elif FUSION_ALGO_COMPL
+	e.x = complementary_filter(av.data[1], av.data[2], gv.data[0]);
+	e.y = 0.0;
+	e.z = 0.0;
+	return e;
 #endif
 
 	zsl_quat_to_euler(&q, &e);
@@ -190,6 +205,7 @@ static void angle_data_send(const struct zsl_euler angles)
 {
 	struct imu_module_event *imu_module_event =
 		new_imu_module_event();
+		
 	/* Somehow the angle output swaps roll and pitch*/
 	imu_module_event->angles.pitch = (float)angles.x;
 	imu_module_event->angles.roll = (float)angles.y;
@@ -233,22 +249,6 @@ static int process_mpu9250(const struct device *dev, bool send_msg)
 
 	struct zsl_euler angles = movement_data_to_angles(accel, gyro, magnetometer);
 
-	// float angles_raw[3];
-	// float accel[3];
-	// int err = app_mpu_get_angles((float *)&angles_raw, accel);
-
-
-	// struct zsl_euler angles = {
-	// 	.x = angles_raw[0],
-	// 	.y = angles_raw[1],
-	// 	.z = angles_raw[2],
-	// };
-
-
-	// if (err) {
-	// 	return err;
-	// }
-
 	if (send_msg) {
 		angle_data_send(angles);
 	}
@@ -277,17 +277,15 @@ static void handle_mpu9250_drdy(const struct device *dev,
 static void module_thread_fn(void)
 {
 	k_sleep(K_SECONDS(2)); // Wait for MPU9250 to initialize
-
+	float freq = 1/(10e-6*(float)IMU_THREAD_SLEEP_USEC);
+	LOG_DBG("Filtering sampling frequency: %f", freq);
 #if FUSION_ALGO_MADGWICK
-	madgwick_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, madgwick_drv.config);
+	madgwick_drv.init_handler(freq, madgwick_drv.config);
 #elif FUSION_ALGO_AQUA
-	aqua_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, aqua_drv.config);
+	aqua_drv.init_handler(freq, aqua_drv.config);
 #elif FUSION_ALGO_EKF
-	kalm_drv.init_handler((float)CONFIG_IMU_MESSAGE_FREQUENCY, kalm_drv.config);
+	kalm_drv.init_handler(freq, kalm_drv.config);
 #endif
-
-	// app_mpu_init();
-
 	const struct device *mpu9250 = device_get_binding("MPU9250");
 
 	if (mpu9250 == NULL)

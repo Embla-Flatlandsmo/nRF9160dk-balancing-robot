@@ -25,20 +25,28 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(controller_module, CONFIG_CONTROLLER_MODULE_LOG_LEVEL);
 
+// #define KP_PITCH 14.5f
+// #define KI_PITCH 20.0f
+// #define KD_PITCH 0.3f
+#define KP_PITCH 20.0f
+#define KI_PITCH 5.0f
+#define KD_PITCH 0.0f
 
-#define KP_PITCH            14.5f
-#define KI_PITCH            20.0f
-#define KD_PITCH            0.3f
+// #define KP_SPEED            1.0f
+// #define KI_SPEED            0.0f
+// #define KD_SPEED            0.1f
 
-#define KP_SPEED            0.0f
+#define KP_SPEED            0.001f
 #define KI_SPEED            0.0f
 #define KD_SPEED            0.0f
 
-#define PITCH_OUTPUT_ALPHA  0.7f
+// #define PITCH_OUTPUT_ALPHA  0.7f
+#define PITCH_OUTPUT_ALPHA 0.7f
 
-#define QDEC_DT_MSEC        1000.0 / (float)CONFIG_QDEC_MESSAGE_FREQUENCY
+#define PITCH_SATURATION_VALUE 100.0f
 
-#define ANGLE_NORMALIZED_CONSTANT   86.0f
+#define ANGLE_NORMALIZED_CONSTANT 86.5f
+// #define ANGLE_NORMALIZED_CONSTANT 0.0f
 #define STATIC_SET_POINT            -ANGLE_NORMALIZED_CONSTANT
 
 #define MOTOR_SPEED_MAX     128
@@ -53,7 +61,7 @@ PID_t PID_pitch;
 PID_t PID_speed;
 
 
-float prev_pitch = -90;
+float prev_pitch = -87.0;
 float prev_position = 0.0;
 
 struct controller_msg_data
@@ -140,12 +148,6 @@ static int set_motor_speed(float speed)
  *                                     Controller                                       *
  *                                                                                      */
 //========================================================================================
-
-void update_pitch_controller(float pitch)
-{
-
-}
-
 void update_speed_controller(float position)
 {
     static uint32_t prev_elapsed_time;
@@ -154,7 +156,7 @@ void update_speed_controller(float position)
     prev_elapsed_time = current_time;
     float delta_time_s = (float)delta_time / 1000.0f;
     float speed = (position - prev_position) / delta_time_s;
-    float speed_output = update_PID(&PID_speed, speed, delta_time_s);
+    float speed_output = update_PID(&PID_speed, -speed, delta_time_s);
     speed_output = CLAMP(speed_output, -MOTOR_SPEED_MAX, MOTOR_SPEED_MAX);
 
     printk("speed_output: %f\n", speed_output);
@@ -186,12 +188,7 @@ void update_controller(float pitch)
     float pitch_output = update_PID(&PID_pitch, pitch_angle, delta_time_s);
 
     static uint32_t prev_time;
-
-
-    // printk("@: %d\td:%d\t%f\n", current_time, current_time - prev_time, pitch_angle);
-
     prev_time = current_time;
-
 
     static bool first = true;
 
@@ -220,9 +217,8 @@ int setup()
     PID_pitch.kp = (float)KP_PITCH;
     PID_pitch.ki = (float)KI_PITCH;
     PID_pitch.kd = (float)KD_PITCH;
-    PID_pitch.i_lb = -(float)CONFIG_PITCH_INTEGRATION_LIMITS;
-    PID_pitch.i_ub = (float)CONFIG_PITCH_INTEGRATION_LIMITS;
-
+    PID_pitch.i_lb = -(float)PITCH_SATURATION_VALUE;
+    PID_pitch.i_ub = (float)PITCH_SATURATION_VALUE;
 
     // PID_pitch.Kp = CONFIG_KP_PITCH / 1000.0;
     // PID_pitch.Ki = CONFIG_KI_PITCH / 1000.0;
@@ -234,7 +230,6 @@ int setup()
     PID_speed.i_lb = -(float)CONFIG_SPEED_INTEGRATION_LIMITS;
     PID_speed.i_ub = (float)CONFIG_SPEED_INTEGRATION_LIMITS;
 
-    // arm_pid_init_f32(&PID_pitch, true);
     LOG_DBG("Pitch PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f, i_lb = %.3f, i_ub = %.3f",
             PID_pitch.kp, PID_pitch.ki, PID_pitch.kd,
             PID_pitch.i_lb, PID_pitch.i_ub);
@@ -242,8 +237,6 @@ int setup()
     LOG_DBG("Speed PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f, i_lb = %.3f, i_ub = %.3f",
             PID_speed.kp, PID_speed.ki, PID_speed.kd,
             PID_speed.i_lb, PID_speed.i_ub);
-    // arm_pid_init_f32(&PID_pitch_speed, true);
-    // LOG_DBG("Pitch speed PID initialized with Kp = %.3f, Ki = %.3f, Kd = %.3f", PID_pitch_speed.Kp, PID_pitch_speed.Ki, PID_pitch_speed.Kd);
 
     init_motors();
     pitch_dt = k_uptime_get();
@@ -326,7 +319,7 @@ static void module_thread_fn(void)
             }
             if (IS_EVENT((&msg), qdec, QDEC_EVT_DATA_READY))
             {
-                // update_speed_controller(msg.module.qdec.travel);
+                update_speed_controller(msg.module.qdec.travel);
             }
         } 
     }

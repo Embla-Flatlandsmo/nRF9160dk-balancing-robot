@@ -21,34 +21,9 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(MODULE, CONFIG_QDEC_MODULE_LOG_LEVEL);
 
-// const struct device *qdec_dev = DEVICE_DT_GET(DT_ALIAS(motora));
 static float encoder_travels[2];
 
 #define DT_MSEC 1000.0/(float)CONFIG_QDEC_MESSAGE_FREQUENCY
-
-// void process_shield(const struct device *dev)
-// {
-// 	struct sensor_value rot[2];
-
-// 	int rc = sensor_sample_fetch(dev);
-// 	if (rc != 0)
-// 	{
-// 		LOG_ERR("Sample fetch failed: %d\n", rc);
-// 	}
-// 	if (rc == 0)
-// 	{
-// 		rc = sensor_channel_get(dev, SENSOR_CHAN_ROTATION,
-// 								rot);
-// 	}
-// 	if (rc == 0)
-// 	{
-// 		float rot_a = (float)(sensor_value_to_double(&rot[0]));
-// 		float rot_b = (float)(sensor_value_to_double(&rot[1]));
-// 		encoder_travels[0] = rot_a;
-// 		encoder_travels[1] = rot_b;
-// 		LOG_DBG("qdec A: %f, qdec B: %f", rot_a, rot_b);
-// 	}
-// }
 
 static void send_data_evt(float travel)
 {

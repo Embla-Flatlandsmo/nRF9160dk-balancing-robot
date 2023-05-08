@@ -46,22 +46,18 @@ config SPEED_RANGE
     default 4
 
 ## Pitch PID
-### TODO: Tune these
+### TODO: Tune these. They are currently not used in the controller_module.c file because it takes long to recompile.
 config KP_PITCH
     int "Proportional gain of PID controller for pitch"
     default 18000
-    # default 180000
-    # default 180000
 
 config KI_PITCH
     int "Integral gain of PID controller for pitch"
     default 0
-    # default 130000
 
 config KD_PITCH
     int "Derivative gain of PID controller for pitch"
     default 3600
-    # default 2500
 
 config PITCH_INTEGRATION_LIMITS
     int "Upper and lower integration limits of pitch PID"
