@@ -1,5 +1,7 @@
 # nRF9160 DK Balancing Robot
 
+![balancing-robot-three-quarter-view](https://user-images.githubusercontent.com/59831726/236825841-a85fe80d-f504-4394-9e02-a14d621bb963.jpg)
+
 This is a project that aims to port a [balancing robot project written for the nRF52832 DK using the nRF5 SDK v13](https://github.com/MartinSivertsen/Hardware-Decoder-for-Balancer-SDK14.2), to the nRF9160 DK using the nRF Connect SDK.
 
 The problem is that the hardware used in this project requires a REALLY tight tuning (if the balancing robot goes +-10 degrees from equilibrium, it cannot get back to the equilibrium) so the current robot does not balance. Stronger motors and/or larger wheels is needed to make it easier to balance this robot.
@@ -26,3 +28,11 @@ This chip is currently not in use, but some gpio pin routing settings might caus
 ## Useful links
 - [MPU9250 (IMU) datasheet](https://3cfeqx1hf82y3xcoull08ihx-wpengine.netdna-ssl.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf)
 - [The original nRF5 SDK code](https://github.com/MartinSivertsen/Hardware-Decoder-for-Balancer-SDK14.2)
+
+
+## Demo video
+
+Notice how it doesn't work at all. The tuning and HW needs some work.
+
+https://user-images.githubusercontent.com/59831726/236825874-811b67f5-c711-49ad-ac07-551fea9b71db.mp4
+
